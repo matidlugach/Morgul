@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morgul Outdoor — Pedidos Mayoristas</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#f0f2f5;min-height:100vh}
+header{background:#181c25;border-bottom:2px solid #2a3040;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:24px;font-weight:900;letter-spacing:2px;color:#e8a020}
+.logo span{color:#f0f2f5;font-weight:300}
+.cart-btn{background:#e8a020;color:#000;border:none;padding:10px 20px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit}
+.badge{background:#000;color:#e8a020;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900}
+.top{padding:14px 16px 0}
+.search{width:100%;background:#181c25;border:1.5px solid #2a3040;border-radius:10px;padding:11px 16px;color:#f0f2f5;font-size:15px;outline:none;font-family:inherit;margin-bottom:10px}
+.search:focus{border-color:#e8a020}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px}
+.filters::-webkit-scrollbar{display:none}
+.fb{background:#181c25;border:1.5px solid #2a3040;color:#8892a4;padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap;font-weight:500;font-family:inherit}
+.fb.on{background:#e8a020;color:#000;border-color:#e8a020;font-weight:700}
+.info-bar{padding:0 16px 8px;font-size:12px;color:#8892a4}
+.min-bar{margin:0 16px 12px;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:13px;font-weight:600;display:none}
+.min-bar.show{display:flex}
+.min-bar.bad{background:#2d0a0a;border:1.5px solid #ef4444}
+.min-bar.good{background:#0a2d15;border:1.5px solid #22c55e}
+.min-icon{font-size:20px;flex-shrink:0}
+.min-txt b{display:block;margin-bottom:2px}
+.min-txt small{font-weight:400;font-size:11px;opacity:.8}
+.prog-wrap{height:6px;background:#2a3040;border-radius:20px;margin:0 16px 14px;display:none}
+.prog-wrap.show{display:block}
+.prog-fill{height:100%;border-radius:20px;transition:width .4s,background .4s}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:0 16px 120px}
+.card{background:#1e2330;border:1.5px solid #2a3040;border-radius:12px;overflow:hidden;transition:border-color .15s}
+.card:hover{border-color:#e8a020}
+.card-img{height:100px;display:flex;align-items:center;justify-content:center;font-size:36px;position:relative;background:#252b38}
+.cat-tag{position:absolute;bottom:6px;left:6px;background:#e8a020;color:#000;font-size:9px;font-weight:800;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+.new-tag{position:absolute;top:6px;right:6px;background:#22c55e;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px}
+.card-body{padding:10px}
+.p-code{font-size:10px;color:#e8a020;font-weight:700;margin-bottom:3px}
+.p-name{font-size:12px;color:#f0f2f5;line-height:1.35;margin-bottom:8px;min-height:32px}
+.p-price{font-size:19px;font-weight:900;color:#e8a020;margin-bottom:8px}
+.p-price small{font-size:10px;color:#8892a4;font-weight:400}
+.qty-row{display:flex;align-items:center;gap:6px}
+.qb{background:#2a3040;border:none;color:#f0f2f5;width:28px;height:28px;border-radius:6px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700;font-family:inherit}
+.qb:active{background:#e8a020;color:#000}
+.qi{background:#181c25;border:1.5px solid #2a3040;color:#f0f2f5;width:40px;text-align:center;padding:5px 2px;border-radius:6px;font-size:14px;outline:none;font-family:inherit}
+.ab{flex:1;background:#e8a020;border:none;color:#000;padding:7px 4px;border-radius:7px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.ab.on{background:#22c55e;color:#fff}
+.no-r{grid-column:1/-1;text-align:center;padding:60px 20px;color:#8892a4;font-size:15px}
+/* PANEL */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none}
+.ov.open{display:block}
+.panel{position:fixed;right:0;top:0;bottom:0;width:min(420px,100vw);background:#181c25;border-left:2px solid #2a3040;z-index:201;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s ease}
+.panel.open{transform:translateX(0)}
+.ph{padding:18px 20px;border-bottom:1px solid #2a3040;display:flex;justify-content:space-between;align-items:center}
+.pt{font-size:20px;font-weight:900;color:#e8a020;letter-spacing:1px}
+.xb{background:#2a3040;border:none;color:#f0f2f5;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.items{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ci{background:#1e2330;border:1px solid #2a3040;border-radius:10px;padding:12px;display:flex;gap:10px;align-items:flex-start}
+.ci-icon{font-size:24px;flex-shrink:0}
+.ci-info{flex:1}
+.ci-code{font-size:10px;color:#e8a020;font-weight:700}
+.ci-name{font-size:12px;color:#f0f2f5;margin:2px 0 6px;line-height:1.3}
+.ci-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ci-qty{font-size:11px;color:#8892a4}
+.ci-sub{font-size:16px;font-weight:900;color:#e8a020}
+.ci-del{background:none;border:none;color:#8892a4;cursor:pointer;font-size:18px;line-height:1;padding:2px;font-family:inherit}
+.ci-del:hover{color:#ef4444}
+.empty{text-align:center;padding:50px 20px;color:#8892a4;font-size:14px}
+/* FORM */
+.form-sec{padding:14px 16px;border-top:1px solid #2a3040}
+.form-title{font-size:11px;font-weight:700;color:#8892a4;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.full{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:3px}
+.flabel{font-size:10px;color:#8892a4}
+.finput{background:#1e2330;border:1.5px solid #2a3040;color:#f0f2f5;padding:8px 10px;border-radius:7px;font-size:13px;outline:none;font-family:inherit}
+.finput:focus{border-color:#e8a020}
+.finput::placeholder{color:#3a4055}
+/* FOOTER PANEL */
+.pfoot{padding:14px 16px;border-top:1px solid #2a3040}
+.total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.tl{font-size:13px;color:#8892a4;font-weight:600}
+.ta{font-size:28px;font-weight:900;color:#e8a020}
+.wa-btn{width:100%;background:#25D366;border:none;color:#fff;padding:14px;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;font-family:inherit}
+.cl-btn{width:100%;background:none;border:1.5px solid #2a3040;color:#8892a4;padding:10px;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit}
+.cl-btn:hover{border-color:#ef4444;color:#ef4444}
+@media(max-width:400px){.grid{grid-template-columns:1fr 1fr;gap:8px}}
+
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:none;align-items:flex-end;justify-content:center}
+.modal-ov.open{display:flex}
+.modal{background:#1e2330;border-radius:16px 16px 0 0;width:100%;max-width:500px;padding:20px;max-height:80vh;overflow-y:auto}
+.modal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.modal-title{font-size:15px;font-weight:700;color:#e8a020;flex:1;padding-right:10px;line-height:1.3}
+.modal-close{background:#2a3040;border:none;color:#f0f2f5;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit}
+.modal-code{font-size:11px;color:#8892a4;margin-bottom:8px}
+.modal-desc{font-size:13px;color:#c0c8d8;line-height:1.6;margin-bottom:16px}
+.modal-price{font-size:22px;font-weight:900;color:#e8a020;margin-bottom:14px}
+.modal-add{width:100%;background:#e8a020;border:none;color:#000;padding:13px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">MOR<span>GUL</span> <span style="font-size:12px;color:#8892a4;font-weight:400;letter-spacing:0">outdoor</span></div>
+  <button class="cart-btn" onclick="togglePanel()">🛒 Pedido <span class="badge" id="badge">0</span></button>
+</header>
+
+<div class="top">
+  <input class="search" type="search" placeholder="🔍  Buscar por nombre o código..." id="srch" oninput="render()">
+  <div class="filters">
+    <button class="fb on" onclick="setF('todos',this)">Todos</button>
+    <button class="fb" onclick="setF('Pesca',this)">🎣 Pesca</button>
+    <button class="fb" onclick="setF('Camping',this)">⛺ Camping</button>
+    <button class="fb" onclick="setF('Iluminación',this)">🔦 Iluminación</button>
+    <button class="fb" onclick="setF('Herramientas',this)">🔧 Herramientas</button>
+    <button class="fb" onclick="setF('Outdoor',this)">🎒 Outdoor</button>
+  </div>
+</div>
+<div class="info-bar" id="infoBar"></div>
+<div class="min-bar" id="minBar"><span class="min-icon" id="minIcon"></span><div class="min-txt"><b id="minMsg"></b><small id="minSub"></small></div></div>
+<div class="prog-wrap" id="progWrap"><div class="prog-fill" id="progFill"></div></div>
+<div class="grid" id="grid"></div>
+
+<div class="ov" id="ov" onclick="togglePanel()"></div>
+<div class="panel" id="panel">
+  <div class="ph"><span class="pt">TU PEDIDO</span><button class="xb" onclick="togglePanel()">✕</button></div>
+  <div class="items" id="items"><div class="empty">🛒<br><br>Aún no agregaste productos</div></div>
+  <div class="form-sec">
+    <div class="form-title">Datos del cliente</div>
+    <div class="form-grid">
+      <div class="field full"><span class="flabel">Nombre / Razón Social *</span><input class="finput" id="fNombre" placeholder="Juan García / Pescadería El Mar"></div>
+      <div class="field"><span class="flabel">CUIT / DNI</span><input class="finput" id="fCuit" placeholder="20-12345678-9"></div>
+      <div class="field"><span class="flabel">Teléfono</span><input class="finput" id="fTel" placeholder="11 1234-5678"></div>
+      <div class="field full"><span class="flabel">Dirección de entrega</span><input class="finput" id="fDir" placeholder="Calle, número, ciudad"></div>
+      <div class="field"><span class="flabel">Forma de pago</span>
+        <select class="finput" id="fPago">
+          <option value="">Seleccionar...</option>
+          <option>Transferencia</option>
+          <option>Efectivo</option>
+          <option>Cheque</option>
+          <option>Mercado Pago</option>
+          <option>Cuenta corriente</option>
+        </select>
+      </div>
+      <div class="field"><span class="flabel">Observaciones</span><input class="finput" id="fObs" placeholder="Urgente, horario..."></div>
+    </div>
+  </div>
+  <div class="pfoot">
+    <div class="total-row"><span class="tl">TOTAL sin IVA</span><span class="ta" id="totalAmt">$0</span></div>
+    <button class="wa-btn" onclick="sendWA()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Enviar pedido por WhatsApp
+    </button>
+    <button class="cl-btn" onclick="clearCart()">Limpiar pedido</button>
+  </div>
+</div>
+
+<script>
+var DESCS={
+'AIS-M-1':'Este aislante de 60cm x 183cm es ideal para actividades al aire libre, como camping o excursiones. Su diseño zig zag plegable lo hace versátil y fácil de transportar. Puede utilizarse como colchoneta o como aislante para bolsas de dormir, proporcionando comodidad y protección contra el frío en cualquier aventura al aire libre. Información General: ',
+'AIS-M-2':'AISLANTE TERMICO 1 PLAZA Perfecta para bolsas de dormir y colchonetas Espesor de 1 cm ( 10mm ) Adecuada para Camping, Bolsas de dormir , Gimnasia, Yoga, Pilates Protege del frio y humedad del piso en bolsas de dormir Material de espuma de polietileno con capa aluminizada Medidas: 180 cm de Largo x 60 cm de ancho x 10 mm de espesor Liviana y sencill',
+'AIS-M-3':'Modelo: AIS-MAT-10 Tela: tpu, Nylon CaracterÍstica: Plegable Aplicación: Exterior, Parque Estilo de diseño:Minimalista Material de la Cubierta: Nylon 40D Material del Topper:TPU Peso: 0,7 kg Colores: Verde Tamaño Expandido: 192*58*5cm Material: Nylon 40D TPU Modo de Inflación: Inflación Manual Uso: Camping al Aire Libre, Senderismo, Montañismo Incl',
+'AIS-M-4':'Modelo: AIS-MAT-20 Tela: tpu, Nylon CaracterÍstica: Plegable Aplicación: Exterior, Parque Estilo de diseño:Minimalista Material de la Cubierta: Nylon 40D Material del Topper:TPU Peso: 0,7 kg Colores: Azul Tamaño Expandido: 192*58*5cm Material: Nylon 40D TPU Modo de Inflaciión: Bomba de inflado incorporado Uso: Camping al Aire Libre, Senderismo, Mon',
+'BDX-1-1 R':'URBAN Bolsa de dormir Rectangular 0° Medida: 180x30x75cm Tejido Exterior: Poliester 68D /190 T Tejido Interior: Fibra Hueca Siliconada 200 Gr Colores: ROJO',
+'BDX-1-1 A':'URBAN Bolsa de dormir Rectangular 0° Medida: 180x30x75cm Tejido Exterior: Poliester 68D /190 T Tejido Interior: Fibra Hueca Siliconada 200 Gr Colores: ROJO',
+'BDX-1-1 V':'URBAN Bolsa de dormir Rectangular 0° Medida: 180x30x75cm Tejido Exterior: Poliester 68D /190 T Tejido Interior: Fibra Hueca Siliconada 200 Gr Colores: ROJO',
+'BDX-4-1':'Bolsa de Dormir URBAN Temperatura: 0°, 10° Tamaño: 220 cm × 80 X 50 cm Capa exterior: poliéster 190 hilos Capa Interior: pongee de poliéster 190T Relleno: fibra hueca 250 g/m2 Peso: 1,2 kg',
+'BDD-M-1':'Medidas: 190 x 84 cm -Tejido exterior: Poliéster 68D / 190T w/r cire. -Tejido interior: Poliéster + Fibra Siliconada -Relleno: fibra hueca siliconada 250 g/m2, Temperaturas: Extrema: 0 °C Confort: 5 a 15 °C Máxima: 30 °C Peso: 1,2KG +/- 50 gr',
+'BDD-M-2':'Ficha Técnica: -Medidas:180+30 x 75 cm. -Tejido exterior: Poliéster 68D / 190T w/r cire. -Tejido interior: Poliéster + algodón. -Relleno: fibra hueca siliconada 200 g/m2, Temperaturas: » Extrema: 0 °C » Confort: 5 a 15 °C » Máxima: 30 °C -Peso: 1,60 kg. -Bolso de transporte tipo marinero',
+'BDD-M-4':'Marca: Morgul Model: Yosemitie Temperatura extrema -5°c Bolsa de dormir tipo momia. Medidas: 215 x 75 x 50 cm Tejido exterior: poliéster diamond ripstop 230t/50d Tejido interior: poliéster microfibra 310t / 50d w/rcire. Relleno: fibra eulin 100 g/m2, 2 mantas. Peso: 0,850 kg (aproximado) Doble cierre, izquierdo / derecho. Capucha y cordón de ajuste',
+'COL-10-1':'1 CLIC BOMBA INCORPORADA	Solo un clic en el panel de control de la bomba incorporado para inflar/desinflar el colchón de aire. Fácil y rápido de hacer una nueva cama para usted, invitados, camping o incluso viajes. INFLADO RÁPIDO DE 3 MINUTOS	Conéctelo a una toma de corriente de 120 CA y el colchón de aire se inflará automáticamente en 3 minutos. ¡',
+'COL-10-2':'1 CLIC BOMBA INCORPORADA	Solo un clic en el panel de control de la bomba incorporado para inflar/desinflar el colchón de aire. Fácil y rápido de hacer una nueva cama para usted, invitados, camping o incluso viajes. INFLADO RÁPIDO DE 3 MINUTOS	Conéctelo a una toma de corriente de 120 CA y el colchón de aire se inflará automáticamente en 3 minutos. ¡',
+'MOC-8-01-NA':'Mochila de senderismo al aire libre de gran capacidad de 40L para hombres y mujeres, mochilas escolares impermeables de moda para ciclismo, poliéster, viaje ligero Colores surtidos Medida: 50x30x12cm',
+'MOC-8-01-RO':'Mochila de senderismo al aire libre de gran capacidad de 40L para hombres y mujeres, mochilas escolares impermeables de moda para ciclismo, poliéster, viaje ligero Colores surtidos Medida: 50x30x12cm',
+'MOC-8-01-AZ':'Mochila de senderismo al aire libre de gran capacidad de 40L para hombres y mujeres, mochilas escolares impermeables de moda para ciclismo, poliéster, viaje ligero Colores surtidos Medida: 50x30x12cm',
+'MOC-8-01-NE':'Mochila de senderismo al aire libre de gran capacidad de 40L para hombres y mujeres, mochilas escolares impermeables de moda para ciclismo, poliéster, viaje ligero Colores surtidos Medida: 50x30x12cm',
+'SOM-4-3 R':'Sombrilla Morgul 2,0Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzadas. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera)',
+'SOM-4-3 A':'Sombrilla Morgul 2,0Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzadas. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera)',
+'SOM-4-3 V':'Sombrilla Morgul 2,0Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzadas. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera)',
+'SOM-4-4 R':'Sombrilla Morgul 2,2Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzada. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera).',
+'SOM-4-4 A':'Sombrilla Morgul 2,2Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzada. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera).',
+'SOM-4-4 V':'Sombrilla Morgul 2,2Mts Tela de loneta poliéster aluminizado de 200 gramos, con teñido altamente resistente a la luz solar. Cúpula con descarga de aire. Armazones reclinables con caño de aluminio y varillas de fibra reforzada. Doble traba en el desplegado (botón y perno de seguridad). Doble traba de ensamble entre caño y lanza (perilla y botonera).',
+'SOM-4-1':'Sombrilla Playera Con Rompe Viento 2.40mts de Playa con Proteccion UV en su interior • Incorporación de faldones laterales que protegen de ráfagas de viento y del sol a medida que rota durante el día. • Diámetro: Ø 2,40 m • Tejido Poliéster Oxford 210D con recubrimiento Silver. • 8 Varillas reforzadas • Incluye funda de transporte. • Ventana Crista',
+'SOM-4-2':'Sombrilla de 2,00mts de Palya con Proteccion UV y entrada de aire superior - Material: 100% Poliester Oxford 180gr con recubrimiento Silver - Reclinable con sistema de resorte en palo Inferior. - Estructura Acero caño 3,2 cm super reforzado. - Varillas De 4.5mm - Ideal Playa o Jardin - Resistente A Fuertes Vientos! - Medidas: - Diámetro: 2 mts - Al',
+'CAR-M-1':'CARPA PLAYERA AUTOMÁTICA TIPO DOMO Modelo: CAR-M-1 Color: Rojo 100 % Polyester 180 T. Incluye malla mosquitera. Varillas: Fibra de vidrio 7.9 mm. Protección UV Medidas: 215 x 150 x 115 cm. Peso: 1,7 Kg. Carpa autoarmable con pop-up. Incluye 8 Estacas. Techo Simple con excelente Circulación de Aire. Bolso transportador.',
+'CAR-M-2':'Carpa abierta ideal para la playa, para reposar a la sombra y disfrutar del dia. Fabricada con varillas de fibra de vidrio, piso de rafia y cubretecho en poliester, aluminizada. Medidas:2,60 mts x 1,20 mts. alto:1,20 mts. • Proteccion: UPF + 30. • 100% Poliester 180T. Piso de polietileno. • Costuras selladas. Bolsillo interno • Peso :1.25kg • Medid',
+'CAR-M-3':'Carpa línea playera automática Morgul para 2 personas. • Sistema de apertura automática, sistema traba-fácil. • 2 entradas y ventilación trasera, puerta enrollable con mosquiteros. • Cubierta: Poliéster 190T. con tratamiento UV • Piso: Polietileno 110 g/m². • Cuadro: Estructura de fibra de vidrio Ø6.9 mm. • Accesorios: 4 bolsas de arena, 4 clavijas',
+'BEX-2':'Bolso impermeable PVC 2 litros Color: Negro Ancho: 18 Cm Largo: 28 Cm',
+'BEX-5':'Bolso impermeable PVC 5 litros Color: Negro Ancho: 30 Cm Largo: 42 Cm',
+'BEX-10':'Bolso impermeable PVC 10 litros Color: Amarillo Ancho: 30,5 Cm Largo: 51 Cm',
+'BEX-15':'Bolso impermeable PVC 15 litros Color: Naranja Ancho: 32.5 Cm Largo: 55 Cm',
+'BEX-20':'Bolso impermeable PVC Incliuye: 2 correas 20 litros Color: Naranja Ancho: 39 Cm Largo: 66 Cm',
+'BEX-30':'Bolso impermeable PVC Incluye: 2 correas 20 litros Color: Negro Ancho: 39 Cm Largo: 69 Cm',
+'TABLE-ST-1':'TABLA PADDEL BOARD Material: PVC Aplicación: Al aire libre, Playa, Agua, Las aguas del océano Nivel de capacidad: Principiante Dimensiones del tablero: Hasta 11.9in Característica: mpermeable, Respetuoso del medio ambiente, Portátil, Durable, Alta resistencia, Plegable Accesorios: Mochila, Bolsa, Aletas, De la bomba, Correa, Remo Tablero de paleta ',
+'TABLE-10':'Medidas: 80 x 60 x 70 cm Capacidad de Resistencia 30 kg Material: estructura de aluminio, tablero MDF Fácil apertura Incluye manija para transporte (No son Valijas) Colores disponibles: Gris/ Blanco Peso: 3kg',
+'TABLE-20':'Medidas: 70 x 50 x 60 cm Capacidad de Resistencia 30 kg Material: estructura de aluminio, tablero MDF Fácil apertura Incluye manija para transporte (No son Valijas) Colores disponibles: Gris/ Blanco Peso: 3kg',
+'TABLE-30':'Medidas: 80 x 60 x 70 cm Capacidad de Resistencia 30 kg Material: estructura de aluminio, tablero MDF Fácil apertura Incluye manija para transporte (No son Valijas) Colores disponibles: Gris/ Blanco Peso: 3kg',
+'TABLE-40':'Mesa Plegable de Aluminio Camping con 4 banquitos y Valija de Traslado Medida:120cm x 60 x 70cm. Peso:6Kg Material Formica con perfiles y patas retráctiles de aluminio En el centro posee un agujero para Sombrilla Los bancos, también de aluminio, tienen una estructura de 18 mm x 0,55 mm, con medidas de 33 cm x 27 cm x 35 cm, proporcionando un asient',
+'SCH-10':'La Silla Plegable de Camping Morgul es un producto de alta calidad diseñado para los amantes de la vida al aire libre. Con una altura total de 64cm y un ancho de 53cm, esta silla proporciona un asiento cómodo y espacioso. Su color negro vibrante añade un toque de estilo a tus aventuras al aire libre. La silla viene con un estuche de 12cm de ancho y',
+'SID-1055 L':'La Silla Plegable Director Acolchada Morgul es la compañera ideal para tus aventuras al aire libre. Diseñada con una estructura de acero reforzado con 4 patas extras, garantiza durabilidad y resistencia, soportando hasta 120 kg. Su asiento de poliéster acolchado proporciona una comodidad excepcional, permitiéndote disfrutar de largas horas de desca',
+'PIN-3-1':'Modelo: 3-1 Acero inoxidable Tipo: Multi-funcional Funciones de la herramienta 16-en-1 (cuchillo/Tijeras/abrebotellas) Grado material Acero inoxidable 420 (antioxidante) Diseño plegable Sí (operación con una sola mano) Peso: 250g (ligero y portátil) Nivel impermeable IPX4 (resistente a salpicaduras) El paquete incluye Bolsa de nylon y clip de mosqu',
+'PIN-3-2':'Modelo estimado: PIN-3-2 Material: Acero inoxidable Mango con terminación anodizada (aluminio azul y negro) Funciones visibles: Alicate de punta + cortacables Cuchilla lisa Cuchilla dentada / sierra Lima de metal Abrebotellas Destornillador plano Destornillador Philips Herramienta para corte o rasgado Adaptador para puntas magnéticas 9 puntas inter',
+'PIN-3-3':'Modelo: PIN-3-3 Cortaplumas 21 usos Material	Acero inoxidable Material del mango	Aluminio Uso: Multifuncional Color: Plata Material	Acero inoxidable, Acero Herramientas incluidas Regla, hoja, archivo, controlador de bits, hoja de sierra, destornillador, alicates, llave Uso:Herramientas de combinación multifuncionales Logotipo	Aceptar logotipo perso',
+'PIN-3-4':'Modelo: PIN-3-4 Acero inoxidable recubierto (acabado negro mate) Herramientas incluidas (aproximadas según la imagen): Alicate de punta fina con cortacables Cuchilla recta Cuchilla dentada / sierra Destornillador plano grande Destornillador plano pequeño Destornillador Philips (cruz) Abrebotellas,Abrelatas, Lima de metal,Gancho multipropósito Medid',
+'PIN-3-5':'Modelo: PIN-3-5 Cortapluma multifuncion Peso del artículo: 268 g Dimensiones del producto: 15,75 x 11,99 x 1,52 cm; 267,62 g Número de modelo del artículo: PIN-3-5 Tamaño Tamaño de bolsillo Estilo 15 EN 1 Material: Aleación de acero Alicate multiherramienta de patrones Cantidad del paquete de artículos 1 Estuche de Cordura con broche',
+'PIN-3-6':'Modelo: PIN-3-5 Cortapluma multifuncion Peso del artículo: 268 g Dimensiones del producto: 15,75 x 11,99 x 1,52 cm; 267,62 g Número de modelo del artículo: PIN-3-5 Tamaño Tamaño de bolsillo Estilo 15 EN 1 Material: Aleación de acero Alicate multiherramienta de patrones Cantidad del paquete de artículos 1 Estuche de Cordura con broche',
+'NAV-3-1':'Modelo: NAV-3-1 Material de la hoja	Acero inoxidable Material del mango	Mango de madera Uso	Navaja para acampar Otros atributos Lugar del origen	Guangdong, China Grado	Bricolaje, Industrial Nombre del producto	Cuchillo plegable Uso	Herramientas de camping al aire libre Palabra clave	Mini cuchillo plegable Material de la cuchilla	Cuchilla del acero ',
+'CYT-3-1':'Descripción PICNIC COVERS 01 - 8 FUNCIONES. MEDIDAS: 10,9 x 3,2 x 3,7 cm. PESO: 142 g. 1- Cuchillo 2- Tenedor 3- Punzón 4- Sacacorchos 5- Llavero 6- Cuchara 7- Abrelatas 8- Destapador',
+'LM-01':'Anafe Portátil Compacto LM-01 Cocina a cartucho (no incluido) Entrada de calor Nominal: 2.3k Consumo: 130g/h Tipo de Gas: Butano Sistema de Encendido piezoeléctrico Automático Botón de Control de Encendido Producto no apto para la conexión a red domiciliaria de Gas Utilizar con cartucho de Gas Butano (no incluido). Este anafe es ideal para quienes ',
+'PAL-10-1':'Pala Plegable Táctica Camping Militar Scout 3 en 1 Modelo: PAL- 10-1 Largo: 41 cm, Usos: 3 en 1 Pala - Pico - Serrucho con grip de goma Peso: 500 g. Material: Metal con terminacion epoxi lncluye Funda de transporte',
+'PAL-10-2':'Pala Plegable con Pico de Camping Modelo: PAL-10-2 Medidas desplegada: 48. cm largo X 10,5 cm ancho Usos: 3 en 1 Pala, Pico y Seruccho Fabricado en hierro con terminación pintura epoxi. Incluye funda de transporte',
+'PAL-10-3':'Pala plegable de Camping de 59cm Modelo: PAL-10-3 Material del mango:Plástico Tipo de pala: Palas plegables Anchura de la hoja:15,5 cm Longitud de la hoja: 21cm Color: Negro Tipo de hoja: Pala multifuncional Nombre del producto: Palas plegables Uso: Pala al aire libre Color: Negro Material DE LA MANIJA:Plástico Material:Metal Longitud: 59cm Peso: 7',
+'BTX-2-1':'Model: BTX-2-1 Modelo: Bastón de aluminio plegable Material: Aluminio ultraliviano Peso: 290 g aprox. Largo extendido: 135 cm Largo plegado: 35 cm Empuñadura: Goma EVA ergonómica antideslizante Sistema de traba: Cierre automático por clic (tipo botón) Punta: Acero con protector de goma removible Incluye: Dragonera ajustable Regatón de goma Bolsa de',
+'BTX-2-2':'Modelo: BTX-2-2 Bastón de Trekking Voline Material del tubo: Aleación de aluminio 7075, ligero y resistente. Empuñadura: Ergonómica, recubierta en espuma EVA para mayor confort y agarre antideslizante. Correa de muñeca: Ajustable, con interior acolchonado para mejor sujeción. Sistema de ajuste: Doble cierre de leva (flip-lock) para una extensión se',
+'BTX-2-3':'Modelo: BTX2-3 Material del mango EVA Material del mastil: Aluminio Mango	Mango de agarre recto Número de la junta 3 Extremo del asta	Acero al carbono-tungsteno Longitud (cm) 135 Feature	Adjustable Folding Canes Baston de trekking plegable para acampar y hacer senderismo',
+'BTX-2-5':'Modelo: BTX2-5 Baston para trekking MORGUL de Aluminio plegable de 4 secciones de Aluminio Material del mango: caucho Material del astil: aluminio Mango: Mango en T Número de la junta: 4 Extremo del asta: boquilla de roma Lugar del origen: Guangdong, China Marca: Unionpromo Número de modelo: UCLTP082402 Longitud (cm): 130 Actividad al aire libre: A',
+'BTX-5-1':'Modelo: BTX-5-1 Material del mango PP Material del astil Aluminio Mango	Mango de agarre recto Número de la junta 3 Extremo del asta	Acero de carbono Longitud (cm) 134 Actividad al aire libre, Senderismo Color: Rojo/azul/negro Peso neto: 258g Longitud de almacenamiento 61,5 cm Longitud abierta 134CM Aplicación: Acampar al aire libre Senderismo Viaja',
+'BTX-5-2':'Modelo: BTX-5-2 Material del mango	Material plástico Material del mastil Aluminio 7075 Mango	Mango de agarre recto Número de la junta 4 Extremo del asta Acero Titanium Número de Modelo: BTX5-2 Longitud (cm)	135 Actividad al aire libre	Senderismo Longitud : 125/135cm Color: Blanco y negro Actividad al aire libre, Escalada de montaña Bastón de sender',
+'LDC-1-2':'Modelo: LDC-1-2 Luz: LED. Potencia 3.7W. Lúmenes: COB alto: 350lms / COB bajo: 150lms / XPE alto: 150lms / XPE bajo: 60lms. Batería: Litio 1220mAh. Duración de batería: 2,5 - 8 horas máximo. Impermeabilidad: Si, resistente al agua. Cantidad de efectos: modo alto COB, modo bajo COB, modo alto XPE, modo bajo XPE , luz XPE+COB estroboscópico. Material',
+'LDC-2-2':'Modelo: LDC-2-2 Potencia 3W Lúmenes: COB alto: 350lms / COB bajo: 120lms / XPE alto: 120lms / XPE bajo: 45lms Batería: Litio 1200mAh Duración de batería: 5-6 horas Impermeabilidad: Si, resistente al agua Cantidad de efectos: modo alto COB, modo bajo COB, modo alto XPE, modo bajo XPE, luz XPE+COB estroboscópico Banda de medida ajustable Sensor de mo',
+'LDC-1-3':'Modelo: LDC 1-3 Material: Plastico Fuente de luz: LED Color de la luz: Blanco (Fría) Lumenes: 1500 Angulo panoramico: 230 grados Potencia de salida: 5W Tipo de batería: Batería recargable incorporada Tiempo de carga: Aproximadamente 3-4 horas Carga USB 5V DC Resistencia al agua: IPX4 (resistente a salpicaduras de agua) Se entrega: 1 x Vincha Minero',
+'LDC-1-4':'Modelo: LDC-1-4 Vida útil (horas)	100000 Fuente de alimentación	Batería recargable Clasificación IP44 Material del cuerpo de la lámpara	ABS Temperatura del color(CCT)	6000K (luz de alerta) Uso Al aire libre, Camping Voltaje de entrada (V)	5V/1A Eficacia luminosa de la lámpara (lm/w)	500 Apoyo regulador de voltaje	Sí Peso del producto (kg)	0.115 Apl',
+'LDC-1-10':'Modelo: LDC-1-15 Vida útil (horas) 100.000 Fuente de alimentación Batería recargable Clasificación IP 44 Material del cuerpo de la lámpara ABS Temperatura del color(CCT) 6000K (luz de alerta) Uso Al aire libre, Camping Voltaje de entrada (V)	5V/1A Eficacia luminosa de la lámpara (lm/w) 500 Apoyo regulador de voltaje	Sí Peso del producto (kg)	0.115 ',
+'LDC-1-7':'Vida útil (horas)	10000 Fuente de alimentación	Batería recargable Clasificación IP	IP66 Material del cuerpo de la lámpara	Aleación de aluminio Garantía (año)	1 Otros atributos Temperatura del color(CCT)	5000K (luz del día) Lugar del origen	Zhejiang, China Voltaje de entrada (V)	220V AC (± 10%) Eficacia luminosa de la lámpara (lm/w)	70 Índice de rep',
+'LDC-6-1':'Vida útil (horas)	10000 Fuente de alimentación:Batería recargable Clasificación IP	IP44 Material del cuerpo de la lámpara ABS, Color: Negro Temperatura del color(CCT)	4100K (blanco) Voltaje de entrada (V)	3,7 V Apoyo regulador de voltaje	Sí Soluciones de iluminación de servicio	Iluminación y circuitos de diseño, Auto CAD diseño, Proyecto de instala',
+'LDC-1-5':'Modelo: LCD-1-5 Linterna Minero Cabeza Vincha Led Sensor USB Recargable La linterna minero cabeza vincha LED sensor USB Alcance de proyección de 7 metros, Su diseño compacto y ligero, con un diámetro de 5 cm y un peso de 100 g. Usos: 3 modos de cambio de luz, lo que te permitirá ajustar la intensidad según tus necesidades. Además, su tipo de luz LE',
+'LDC-1-6':'LDC-1-6 Vida útil (horas)	50000 Fuente de alimentación	Batería recargable Clasificación: IP65 Material del cuerpo de la lámpara	ABS Temperatura del color(CCT) 4100K (blanco) Uso: Al aire libre, Senderismo, Camping, Emergencia, Médico, Pesca, Alpinismo Voltaje de entrada (V)220V AC (± 10%) Eficacia luminosa de la lámpara (lm/w)90 Índice de represent',
+'LDC-1-9':'Vida útil (horas)50000 Fuente de alimentaciónBatería seca Clasificación IPIP54 Material del cuerpo de la lámpara ABS Voltaje de entrada (V)	5V Apoyo regulador de voltaje	Sí Soluciones de iluminación de servicio	Iluminación y circuitos de diseño Peso del producto (kg)	0,53 Aplicación: Senderismo,Emergencia Período de iluminación (h)	>12 Tipo de bate',
+'LIN-4-1':'Tipo de batería	1200mAh/Built In Lithium Battery Aplicación	Emergencia Fuente de alimentación	Batería recargable Clasificación IP65 Material del cuerpo de la lámpara: Aleación de aluminio Flujo luminoso de la lámpara (lm): 1200 + lumens Temperatura del color(CCT) 5000K (luz del día) Tipo de bombilla: Led Voltaje de entrada (V): 220V AC (± 10%) Efic',
+'LIN-1-8':'Modelo: LIN-1-8 Tipo de batería AAA Aplicación: Emergencia Fuente de alimentación: Batería recargable Clasificación: IP54 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	144 Temperatura del color(CCT) 6000K (luz de alerta) Voltaje de entrada (V) DC 6V Eficacia luminosa de la lámpara (lm/w)144 Índice de repre',
+'LIN-1-9':'LIN-1-9 Tipo de batería	AAA Aplicación: Emergencia Fuente de alimentación: Batería recargable Clasificación IP	IP54 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	144 Temperatura del color(CCT)6000K (luz de alerta) Lugar del origen	Zhejiang, China Voltaje de entrada (V)DC 6V Eficacia luminosa de la lámpara ',
+'LIN-1-12':'LIN1-12 Tipo de batería::3xAAA/1x18650 Aplicación Camping Fuente de alimentación	Batería seca Clasificación IP44 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	500 Temperatura del color(CCT) 5000K (luz del día) Voltaje de entrada (V)DC 6V Eficacia luminosa de la lámpara (lm/w)80 Vida útil (horas)	100000 Pes',
+'LIN-1-2':'Modelo: LIN-1-2 Tipo de batería: Litio Aplicación: Emergencia Fuente de alimentación: Batería recargable Clasificación: IP54 Material del cuerpo de la lámpara: Aleación de aluminio Flujo luminoso de la lámpara (lm)	240 Temperatura del color(CCT) 6000K (luz de alerta) Voltaje de entrada (V)	3,7 Eficacia luminosa de la lámpara (lm/w)	80 Índice de rep',
+'LIN-1-3':'Modelo:LIN-1-3 Tipo de batería: LI-ION Aplicación: Camping Fuente de alimentación	Batería recargable Clasificación IP	IP65 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	3500 Temperatura del color(CCT) 6000K (luz de alerta) Voltaje de entrada (V)5 Eficacia luminosa de la lámpara (lm/w)3500 Índice de represe',
+'LIN-1-4':'Modelo: LIN-1-4 Tipo de batería	NI-MH Aplicación: Emergencia Fuente de alimentación:Batería recargable Clasificación IP	IP54 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	100-150lm Temperatura del color(CCT) 6000K (luz de alerta) Voltaje de entrada (V)1 Eficacia luminosa de la lámpara (lm/w)100-150lm Índic',
+'LIN-1-5':'Modelo: LIN-1-5 Tipo de batería NI-MH Aplicación: Emergencia Fuente de alimentación Batería recargable Clasificación: IP54 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	120-160lm Temperatura del color(CCT) 6000K (luz de alerta) Lugar del origen	Zhejiang, China Voltaje de entrada (V)1 Eficacia luminosa de l',
+'LIN-1-6':'Modelo: LIN1-6 Tipo de batería	Li-Mh Aplicación: Emergencia Fuente de alimentación	Batería recargable Clasificación IP	IP54 Material del cuerpo de la lámpara	Aleación de aluminio Flujo luminoso de la lámpara (lm)	100-150 Temperatura del color(CCT)6000K (luz de alerta) Voltaje de entrada (V) 3,7 Eficacia luminosa de la lámpara (lm/w) 10 Índice de re',
+'LDC-1-8':'LDC-1-8 Aplicación: Camping Fuente de alimentación	Batería recargable Material del cuerpo de la lámpara	ABS + PS + aluminio Flujo luminoso de la lámpara (lm)	1000 Otros atributos Lugar del origen	Zhejiang, China Eficacia luminosa de la lámpara (lm/w)50 Apoyo regulador de voltaje: Sí Soluciones de iluminación de servicio: Iluminación y circuitos de ',
+'LIN-1-1':'Modelo: LIN-1-1 Tipo de batería: Batería recargable Aplicación: Emergencia Fuente de alimentación: Batería recargable Clasificación : IP44 Material del cuerpo de la lámpara: Aleación de aluminio Flujo luminoso de la lámpara (lm) 500 Temperatura del color(CCT): 6000K (luz de alerta) Voltaje de entrada (V) DC 6V Eficacia luminosa de la lámpara (lm/w)',
+'LDC-7-1':'Modelo. LDC-7-1 Aplicación: Camping, Peimeros Auxilios, practica para llevar en el auto Fuente de alimentación:Batería recargable Clasificación: IP65 Material del cuerpo de la lámpara	Aluminio Flujo luminoso de la lámpara (lm)	100 - 1000 lúmenes Temperatura del color(CCT) 6000K (luz de alerta) Tipo de bombilla	LED Voltaje de entrada (V)3.7 Eficacia',
+'LIN-2-4':'LLavero multifuncional Mini COB Led llavero luz recargable lámpara de emergencia portátil abridor magnético al aire libre llavero Luz Material del cuerpo de la lámpara	ALUMINIO Tipo de linterna	Linterna recargable Tipo de batería	NI-MH Emisión de color	Amarillo Product name	Mini Working Light;Keychain Flashlight type of light source	COB Material	AB',
+'LIN-2-5':'Llavero multifuncional Mini COB Led llavero luz recargable lámpara de emergencia portátil abridor magnético al aire libre llavero Luz Material del cuerpo de la lámpara	Plástico (ABS) Tipo de linterna	Linterna recargable Tipo de batería	NI-MH Emisión de color	Amarillo Tipo de producto	Promocional regalos de la novedad type of light source	COB Materi',
+'LIN-1-13':'Temperatura del color(CCT)	3500K (suave blanco cálido) Clasificación IP	IP44 Material del cuerpo de la lámpara	PC + ABS Voltaje de entrada (V)	DC 5V Eficacia luminosa de la lámpara (lm/w)	15 Índice de representación de color (Ra)	85 Apoyo regulador de voltaje	Sí Soluciones de iluminación de servicio	Iluminación y circuitos de diseño Vida útil (hora',
+'LIN-1-7':'LIN.1-7 Linterna de emergencia con imen 1200 Lumenes con Power Bank Clasificación: IP54 Temperatura del color(CCT)6000K (luz de alerta) Fuente de alimentación:Batería recargable Característica: Impermeable Índice de representación de color (Ra)	80 Fuente de luz:Mazorca Apoyo regulador de voltaje: Sí Vida útil (horas)	50000 Carga: Tipo-c USB',
+'LIN-6-1':'Farol LED T6 + 40SMD blanco + 20SMD rojo Clasificación IP	IPX4 Material del cuerpo de la lámpara	ABS + aluminio + Allioy Soluciones de iluminación de servicio	Iluminación y circuitos de diseño Fuente de luz	LED Certificación	CE, RoHs Uso: Carretera, Emergencia y Camping Tamaño	16,5*7,5*7,8 Tiempo de iluminación: 4-8hours Material	Plástico ABS De la',
+'REE-17-01':'GTA Series (2000-7000) Potencia extrema y control absoluto para los desafíos más duros.  La serie GTA ofrece un cuerpo robusto de aleación, carretel metálico de alta capacidad y una perilla de combate sobredimensionada para máximo torque en situaciones críticas.  Con freno de alto poder y una estructura reforzada, los GTA son ideales para pesca pes',
+'REE-17-02':'',
+'REE-17-03':'',
+'REE-17-04':'',
+'REE-17-05':'',
+'REE-17-06':'',
+'REEL-LM 3000':'Modelo LM. - 5 Rulemanes blindados. - Relación de giro: 5.2:1 - Peso: 367 gramos. - Max drag: 16 KGS. - Freno multidisco con alto poder de arrastre. - Alarma de salida de línea. - Cuerpo construido en grafito de alta resistencia. - Carretel de aluminio forjado y alivianado. - Manija en aluminio reforzada con empuñadura de eva de alta resistencia in',
+'REEL-LM 4000':'',
+'REEL-LM 5000':'',
+'REEL-LM 6000':'',
+'REE-17-11':'DR Series (3000-7000) Fuerza, confiabilidad y suavidad de operación en cada lance. La nueva serie DR está diseñada para pescadores que exigen alto rendimiento en agua dulce y salada. Equipados con cuerpo liviano, carretel de aluminio de gran capacidad y freno de hasta 5 kg, los DR ofrecen una recuperación constante y segura, incluso frente a captur',
+'REE-17-12':'',
+'REE-17-13':'',
+'REE-17-14':'',
+'REE-17-09':'Serie LM (2500/3500) Precisión, suavidad y potencia en un diseño optimizado para multifilamento. El nuevo reel MF ha sido especialmente desarrollado para aprovechar al máximo las ventajas del multi, con un carretel de alta capacidad, perfil bajo y construcción liviana de alta resistencia. Ideal para pesca técnica de especies deportivas donde cada l',
+'REE-17-10':'',
+'VORTA HQ-3000':'El Reel Frontal Max E-xtreme Vorta es la elección perfecta para los pescadores que buscan rendimiento y durabilidad en sus aventuras en el mar. Con un peso de solo 350 g, este reel es ligero y fácil de manejar, permitiendo largas jornadas de pesca sin fatiga. Su diseño frontal optimiza la experiencia de lanzamiento y recuperación, asegurando que ca',
+'VORTA HQ-4000':'',
+'VORTA HQ-5000':'',
+'VORTA HQ-6000':'',
+'VORTA HQ-7000':'',
+'HARDEN HE-3000':'Reel Frontal HE de 12 Ball Bearing IMPORTANTE EL CUERPO DEL REEL ES DE POLIMERO DE ALTO IMPACTO Y NO ALUMINIO COMO DICE EN EL DETALLE Material: Aleación de Acero Inoxidable y Plástico Arrastre Máximo: 10 Kilos Relación de Transmisión: 5.2:1 Mano: Derecha / Izquierda Capacidad del Carretel: (mm-M) Copa de alambre de aleación CNC: alta resistencia si',
+'HARDEN HE-4000':'',
+'HARDEN HE-5000':'',
+'HARDEN HE-6000':'',
+'HARDEN HE-7000':'',
+'B RAIN NXS-3000':'El Reel Morgul Black Rain NSX es la elección perfecta para los entusiastas de la pesca variada en mar. Con un diseño frontal y un peso de solo 300 g, este reel combina ligereza y robustez, permitiendo largas jornadas de pesca sin fatiga. Su arrastre máximo de 7 kg asegura que podrás enfrentar a los peces más desafiantes con confianza.  Equipado con',
+'B RAIN NXS-4000':'',
+'B RAIN NXS-5000':'',
+'B RAIN NXS-6000':'',
+'B RAIN NXS-7000':'',
+'REE-17-15':'Modelo REEL 17-15 Color Rojo Lado de la manijaDerecho/Izquierdo Tipo de reelFrontal Peso 150 g Arrastre máximo 3 kg Cantidad de rulemanes 1 Relación de transmisión 5.2:1 Con alarma de pique No Descripción: Con este reel, disfrutá más de tus días de pesca. Esta herramienta hace que recoger o lanzar la línea sea mucho más fácil. Además, sus sistemas ',
+'REE-17-16':'Modelo REEL 17-16 Color Azul Lado de la manijaDerecho/Izquierdo Tipo de reelFrontal Peso 150 g Arrastre máximo 3 kg Cantidad de rulemanes 1 Relación de transmisión 5.2:1 Con alarma de pique No DescripciónCon este reel, disfrutá más de tus días de pesca. Esta herramienta hace que recoger o lanzar la línea sea mucho más fácil. Además, sus sistemas de',
+'REE-17-17':'Modelo DW128 (Nombre a definir) TipoBaitcasting (Low Profile) Peso del reel; 195 g RelaciÃ³n de engranaje: 7.2:1 Rodamientos: 11+1 (11 de bolas + 1 anti-reverse) Material del cuerpo Grafito de alta resistencia Material de la bobina Aluminio CNC Sistema de freno Freno magnético ajustable Fuerza mÃ¡xima de freno (Max Drag) 10 kg Manivela Ergonómica, ',
+'REE-17-18':'',
+'ZION LDC-300R':'LDC300R - LDC300L Carrete de aluminio Mango de aluminio con perilla   de goma. Freno máximo de 15 kg. Rulemanes 6+1BB Excelente sistema de oscilación   de la línea. Cojinete de embrague unidireccional Incluye manija de fuerza y bolsa  de guardado',
+'ZION LDC-300L':'',
+'REE-17-19':'Especificaciones técnicas: Modelo: DW139L (Manija izquierda) Tipo: Baitcasting Cuerpo: Grafito de alta resistencia Carretel: Aluminio anodizado ultraliviano Rodamientos: 7+1 (7 de bolas + 1 anti-reverse) Relación de engranaje (Gear Ratio): 7.2:1 (estimado por el diseño, podemos ajustarlo si me pasás el dato exacto) Freno (Drag): Máx 6-8 kg (estimad',
+'REE-17-20':'',
+'MAVIX AK-200 R':'AK200R - AK200L Peso del carrete: 230g. Antirreversa instantánea  unidireccional. Freno máximo de 8-10 kg. Cuerpo de aleación ligera   con rotor reforzado. Bobina de aluminio CNC   con capacidad extendida y diseño  antideslizante. Sistema de freno magnético  externo ajustable. Manivela de aluminio con  doble pomo EVA ergonómico  antideslizanten dob',
+'MAVIX AK-200 L':'',
+'FK-901B':'Excelente caja organizadora, diseñada para amantes de la pesca que buscan eficiencia y funcionalidad. Este práctico accesorio es ideal para mantener tus herramientas y suministros en perfecto orden, permitiendo un acceso rápido y fácil en cualquier momento. Con un tamaño de 30 cm de largo, 20 cm de ancho y 5 cm de alto, es lo suficientemente compac',
+'ALF-19-01':'Modelo Alfajores de pesca x 46 unidades Color Negro Funciones adicionales guardar la lineas, porta lineas Accesorios incluidos 46 alfajores Largo x Altura x Ancho 26cm x 8,5 cm x 32,5 cm Descripción La Caja porta líneas x 46 alfajores es la solución perfecta para los amantes de la pesca que buscan mantener sus líneas organizadas y en óptimas condic',
+'ALF-19-02':'Ancho: 7 cm Marca: MAX EXTREME Altura: 18 cm Características principales Accesorios incluidos 24 alfajores Incluye bandeja Sí Tipo de bandeja Removible Cantidad de bandejas 1 Largo x Altura x Ancho 25 cm x 20 cm x 7,8 cm Descripción La Caja porta líneas x 24 alfajores es la solución perfecta para los amantes de la pesca que buscan mantener sus líne',
+'CDP-19-03-V':'CAJA DE PESCA 3 EN 1 ° Modelo: CDP-19-03 ° Material plástico de alta resistencia. ° Color combinado de verde y negro ° Medidas: 34 (ancho) x 38 (alto) x 21 cm (profundidad). --Incluye--- ° Correa de transporte para colgar tipo bolso',
+'HDP-19-01':'El Boga Grip MAX EXTREME de 22 cm de Aluminio anodizado, cordon profesional y empuñadura de goma eva, es la herramienta ideal para los amantes de la pesca, diseñada para facilitar el manejo de tus capturas. Fabricada en acero inoxidable, garantiza durabilidad y resistencia a la corrosión, lo que la convierte en un accesorio confiable para cualquier',
+'TRA-13-01':'Copo de Pesca de 2,05 metros, una herramienta esencial para los amantes de la pesca. Este copo cuenta con un mango de aluminio extensible en tres posiciones, permitiéndote ajustar su longitud según tus necesidades: 2,05 metros, 1.60 metros o 1.18 metros. Cuando no está en uso, se pliega fácilmente a 72 cm, facilitando su transporte y almacenamiento',
+'TRA-19-01':'Copo de Pesca de 1.50 m, la herramienta ideal para los amantes de la pesca. Este copo cuenta con un mango de aluminio extendible en tres posiciones, permitiendo adaptarse a tus necesidades en cada captura. Con un largo total de 1.50 m y opciones intermedias de 1.22 m y 0.80 m, se pliega fácilmente a 60 cm para un almacenamiento compacto. Su red tri',
+'TRA-19-02':'Copo de Pesca de 2.40 m, una herramienta esencial para los amantes de la pesca. Este copo cuenta con un mango de aluminio extensible en tres posiciones, permitiéndote ajustar su longitud según tus necesidades: 2,05 metros, 2.00 metros o 1.40 metros. Cuando no está en uso, se pliega fácilmente a 71 cm, facilitando su transporte y almacenamiento. La ',
+'TRA-19-03':'Copo De Pesca Extensible Con Mango Extensible Mediano MAX EXTREME Descripcion: Copo extensible de la marca MAX EXTREME. Tipo de red triangular Tamaño abierto es de 150 cm Ancho de la red de 60 cm Mango de goma eva Material de aluminio reforzado Origen: China Marca: MAX EXTREME',
+'MUL-M-12A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,12 mm Resitencia 9,6 Kg Color: AMARILLO',
+'MUL-M-12G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,12 mm Resitencia 9,6 Kg Color: GRIS',
+'MUL-M-12V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,12 mm Resitencia 9,6 Kg Color: Verde Musgo',
+'MUL-M-14A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,14 mm Resitencia 10,7 Kg Color: AMARILLO',
+'MUL-M-14G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,14 mm Resitencia 10,7 Kg Color: GRIS',
+'MUL-M-14V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,14 mm Resitencia 10,7 Kg Color: Verde Musgo',
+'MUL-M-16A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,16 mm Resitencia 15,4 Kg Color: AMARILLO',
+'MUL-M-16G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,16 mm Resitencia 15,4 Kg Color: GRIS',
+'MUL-M-16V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,16 mm Resitencia 15,4 Kg Color: Verde Musgo',
+'MUL-M-18A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,18 mm Resitencia 17,1 Kg Color: AMARILLO',
+'MUL-M-18G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,18 mm Resitencia 17,1 Kg Color: GRIS',
+'MUL-M-18V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,18 mm Resitencia 17,1 Kg Color: Verde Musgo',
+'MUL-M-22A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,22 mm Resitencia 22,9 Kg Color: AMARILLO',
+'MUL-M-22G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,22 mm Resitencia 22,9 Kg Color: GRIS',
+'MUL-M-22V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,22 mm Resitencia 22,9 Kg Color: Verde Musgo',
+'MUL-M-25A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,25 mm Resitencia 23,8 Kg Color: AMARILLO',
+'MUL-M-25G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,25 mm Resitencia 23,8 Kg Color: GRIS',
+'MUL-M-25V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,25 mm Resitencia 23,8 Kg Color: Verde Musgo',
+'MUL-M-30A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 32,9 Kg Color: AMARILLO',
+'MUL-M-30G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 32,9 Kg Color: GRIS',
+'MUL-M-30V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 32,9 Kg Color: Verde Musgo',
+'MUL-M-35A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 34,9 Kg Color: AMARILLO',
+'MUL-M-35G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 34,9 Kg Color: AMARILLO',
+'MUL-M-35V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 34,9 Kg Color: AMARILLO',
+'MUL-M-40A':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 37,9 Kg Color: AMARILLO',
+'MUL-M-40G':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 37,9 Kg Color: AMARILLO',
+'MUL-M-40V':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 37,9 Kg Color: AMARILLO',
+'AP-114':'Pinza alicate de pesca con cabezal de abrazadera de aleación de aluminio, removedor de anzuelos resistente al agua salada, cortadores de línea trenzada, anillo dividido, deportes y entretenimiento de acero inoxidable Peso	181g Tamaño 18cm',
+'FP-928':'TIJERA DE PESCA -Tijera cortacable, multifilamento y nailon -Medida: 13 cm -Cómoda a los dedos -Fácilmente identificable por el color',
+'FP-833':'Modelo: FT-336 Material: Acero Inoxidable Largo Total: 6 cm Navaja: 3 cm (integrada) Especificaciones Técnicas: Construcción Antióxido: Fabricado en acero inoxidable, este alicate garantiza una durabilidad excepcional y una resistencia superior a la corrosión, siendo ideal para enfrentar ambientes marinos y de agua dulce. Navaja Integrada: Hoja de ',
+'FT-336':'La Pinza Alicate Abreanillas Corta Leader Tanza Multi es una herramienta esencial para los entusiastas de la pesca. Diseñada para ofrecer un rendimiento superior, esta pinza es ideal para cortar líderes y anzuelos con facilidad, garantizando una experiencia de pesca más eficiente y placentera. Su construcción robusta permite soportar un peso máximo',
+'F-888S':'Material de la hoja del cuchillo: Acero inoxidable Número de Modelo: F-888 Material de la hoja: 420J2 SS Material del mango: PP+TPR Función: Cortador de Alimentos',
+'SH-102':'AFILADOR CUCHILLOS DE CERAMICA El Afilador de Cuchillos de Bolsillo es la herramienta esencial para aquellos que valoran la precisión en el corte y el mantenimiento de sus cuchillos. Fabricado en cerámica de alta calidad, este afilador es ideal para mantener el filo de cuchillos de bolsillo, asegurando cortes eficaces y seguros.  Su diseño compacto',
+'FFD102':'MEDELO: FF102 Características principales: Hoja de acero inoxidable Diseño filetero, flexible y preciso Mango ergonómico antideslizante Incluye funda protectora Uso: pesca deportiva y profesional Presentación mayorista: balde con 24 unidades Cuchillo filetero diseñado para el trabajo diario del pescador. Cuenta con hoja de acero inoxidable, flexibl',
+'FFD510':'MODELO: FFD510 Cuchillo Filetero para Pesca – Acero Inoxidable Características principales: Hoja de acero inoxidable Diseño filetero, preciso y eficiente Mango ergonómico antideslizante Incluye funda protectora Ideal para pesca deportiva y profesional Presentación: balde x 36 unidades Cuchillo filetero robusto y confiable, diseñado para el uso inte',
+'F-104':'Modelo:F-104 Tipo de cuchillo:Fileteador Color:Negro C/ Rojo Tipo de filo de la hoja:Liso Material del mango:Plástico Peso y dimensiones Largo total:25,5 cm Otros Modelo detallado Material de la hoja:Acero inoxidable Largo de la hoja: 14 cm Largo del mango: 11,5 cm Usos recomendados: Camping, Fileteo de pescados y carnes, Pesca',
+'TRA-11-01':'TRAMPA DE PESCA PLEGABLE Art: TRA-11-01 Tipo: Trampa de pesca automática Material Red de nylon resistente con estructura metálica reforzada Características Diseño plegable tipo paraguas Múltiples entradas para captura eficiente Estructura liviana y fácil de transportar Armado y desarmado rápido Alta resistencia al uso en agua dulce y salada Sistema',
+'TRA-11-02':'TRAMPA DE PESCA PLEGABLE 6 BOCAS Art: TRA-11-02 Tipo: Trampa de pesca automática  Material Red de nylon resistente con estructura metálica reforzada  Características Diseño plegable tipo paraguas 6 bocas de ingreso para mayor eficiencia de captura Estructura liviana y resistente Armado y desarmado rápido Alta resistencia para uso en agua dulce y sa',
+'TRA-11-03':'TRAMPA DE PESCA PLEGABLE 8 BOCAS Art: TRA-11-03 Tipo: Trampa de pesca automática Material Red de nylon resistente con estructura metálica reforzada Características Diseño plegable tipo paraguas 8 bocas de ingreso para máxima eficiencia de captura Estructura liviana y resistente Armado y desarmado rápido Alta resistencia para uso en agua dulce y sal',
+'HPE-13-01':'Pinza compacta construida en acero inoxidable con mangos Grip de goma Con Funda. Apertura automática al soltar Traba de seguridad para que no se abra dentro del bolso o bolsillo. Ideal para transportar en pequeños espacios. Incluye Funda con Presilla, Largo total: 16 cm Funciones: Punta abre anillas, Punta saca anzuelos, Tijera para nylon, multifil',
+'HPE-13-02':'Tijera de pesca, agarre de PVC, Cuchillas de acero inoxidable con filo y sierra ideal para cortar multi, nylon, cable entre otros Largo de cuchillas 4.7 cm Largo total 15 cm Mango anatómico Peso 66 gramos',
+'HEP-14-01':'El Boga Grip MAX EXTREME de 22 cm es la herramienta ideal para los amantes de la pesca, diseñada para facilitar el manejo de tus capturas. Fabricada en acero inoxidable, garantiza durabilidad y resistencia a la corrosión, lo que la convierte en un accesorio confiable para cualquier aventura en el agua. Su mango ergonómico de goma eva proporciona un',
+'HEP-14-02':'Modelo HP-14-01 Material acero inoxidable recubierto con teflon 12.7 cm de hoja 25 cm largo total Mango polimero engomado antideslizante Filo liso Parte superior de la hoja dentada Funda de polipropileno',
+'BAL-01':'Modelo: BAL-01 Balanza digital estilo gancho ideal para valijas, pesca y otros usos. soporta hasta 50 kilos. con función tara. puede variar en kilos o libras. Funciona a pila. 2 doble  (AA). Medias: Ancho: 7,5 cm. Largo total: 20,5 cm. Alto: 11,5 cm.',
+'ATR-H-24':'Red de Pesca Atarraya Ideal Carnada Mojarras , Cornalitos, Morena Material: Hilo de Gran Resistencia Diametro: 4.80m Medidas de Rombos: 18mm x 18mm Soga: Incluida 10 mts Aprox. Incluyen plomadas Pasante en toda su circunferencia --- Ideal para sacar carnada en el Rio/Mar. ---- La Atarraya de Tanza Red de HILO de 2,40 mts con soga y muñequera es la ',
+'ATR-H-27':'Red de Pesca Atarraya Ideal Carnada Mojarras , Cornalitos, Morena Material: Hilo de Gran Resistencia Diametro: 5.40m Medidas de Rombos: 18mm x 18mm Soga: Incluida 10 mts Aprox. Incluyen plomadas Pasante en toda su circunferencia --- Ideal para sacar carnada en el Rio/Mar. ---- La Atarraya de Tanza Red de HILO de 2,40 mts con soga y muñequera es la ',
+'ATR-N-24':'Red de Pesca Atarraya Ideal Carnada Mojarras , Cornalitos, Morena Material: Naylon de Gran Resistencia Diametro:4,80m Medidas de Rombos: 18mm x 18mm Soga: Incluida 10 mts Aprox. Incluyen plomadas Pasante en toda su circunferencia --- Ideal para sacar carnada en el Rio/Mar. ---- La Atarraya de Tanza Red de NAYLON de 2,40 mts con soga y muñequera es ',
+'ATR-N-27':'Red de Pesca Atarraya Ideal Carnada Mojarras , Cornalitos, Morena Material: Naylon de Gran Resistencia Diametro: 5.40m Medidas de Rombos: 18mm x 18mm Soga: Incluida 10 mts Aprox. Incluyen plomadas Pasante en toda su circunferencia --- Ideal para sacar carnada en el Rio/Mar. ---- La Atarraya de Tanza Red de NAYLON de 2,70 mts con soga y muñequera es',
+'HEP14-04':'BOGA GRIP  PINZA ACERO INOXIDABLE 15 KG 22CM   • Peso: 125 gramos • Soporte máximo: 15 kg • Acero inoxidable 304 • Empuñadura de goma eva • Cordón con ajuste para colgar • Herramienta de alta calidad para sacar, manipular a los peces en forma rápida y sencilla • Presiona en la parte baja de la quijada en la mayoría de los peces de río y laguna, inc',
+'HEP14-06':'PINZA BOGA GRIP DE ACERO INOXIDABLE 25CM CON CINTA MÉTRICA Cinta métrica retráctil (1 metro / 100 cm). En acero inoxidable. Mango ergonómico de goma eva. Gatillo de pvc. Con balanza de hasta 15kgs. Cordón de seguridad regulable de neoprene. GRIP DE SUJECIÓN SEGURA: Diseñada para sostener firmemente la mandíbula del pez sin dañarlo, facilitando la e',
+'HEP14-08':'PINZA BOGA GRIP SURFISH DE ACERO INOXIDABLE 25CM En acero inoxidable. Mango ergonómico de goma eva. Gatillo de pvc. Con balanza de hasta 15kgs. Cordón de seguridad regulable de neoprene. GRIP DE SUJECIÓN SEGURA: Diseñada para sostener firmemente la mandíbula del pez sin dañarlo, facilitando la extracción del anzuelo, la fotografía y la devolución a',
+'C-3600-B':'MODELO:3,600-B Medidas: 27,5 x 18,5 x 5 cm • Material: polipropileno de alta resistencia • 20 divisiones (12 movibles) • Caja estanca totalmente impermeable • Ideal para señuelos y accesorios • Los pestillos de alta resistencia permiten la apertura con una sola mano y mantienen sus valiosos señuelos y accesorios seguros y totalmente secos • El colo',
+'C-3700-B':'MODELO:3700-B  Caja Estanca MAX EXTREME Señuelos 3 a 15 divisiones (12 movibles) • Medidas: 35,5 x 22 x 5,5cm • Material: polipropileno de alta resistencia • Caja estanca totalmente impermeable • Ideal para señuelos y accesorios • Los pestillos de alta resistencia permiten la apertura con una sola mano y mantiene sus valiosos señuelos y accesorios ',
+'C-3700-A':'MODELO: 3700-A  Caja Estanca MAX EXTREME Señuelos 20 Divisiones  • Medidas: 35,5 x 22,5 x 8cm • Material: polipropileno de alta resistencia • 4 a 20 divisiones (16 movibles) • Caja estanca totalmente impermeable • Ideal para señuelos y accesorios • Los pestillos de alta resistencia permiten la apertura con una sola mano y mantiene sus valiosos señu',
+'RNA-100':'Señuelo Ranas antienganche para pescar taruchas. Caucho resistente con plomo de contra peso Tamaño chico: 6cm',
+'NKG SURF MASTER 12.000':'REEL FRONTAL DE PESCA Art: NGK SURF MASTER Tipo: Reel frontal (spinning) Material Cuerpo de alta resistencia con bobina de aluminio anodizado Características Sistema de freno delantero de precisión Bobina metálica reforzada Manivela intercambiable Recuperación suave y balanceada Guía hilo reforzado Diseño robusto y duradero Capacidad / Tamaños disp',
+'CARRTE NKG 8.000':'BOBINA DE REPUESTO PARA REEL Art: NGK-8000 Tipo: Bobina metálica  Material Aluminio anodizado de alta resistencia  Características Diámetro superior: 7 cm Altura: 3,9 cm Base: 7,8 cm Diseño liviano y resistente Alta capacidad de carga de línea Excelente salida de hilo  Uso Ideal como repuesto o para cambiar tipos de línea rápidamente.  Aplicaciones',
+'CARRTE NKG 10.000':'BOBINA DE REPUESTO PARA REEL Art: NGK-10000 Tipo: Bobina metálica  Material Aluminio anodizado de alta resistencia  Características Diámetro superior: 6 cm Altura: 3,9 cm Base: 7,8 cm Diseño liviano y resistente Alta capacidad de carga de línea Excelente salida de hilo  Uso Ideal como repuesto o para cambiar tipos de línea rápidamente.  Aplicacione',
+'CARRTE NKG 14.000':'BOBINA DE REPUESTO PARA REEL Art: NGK-14000 Tipo: Bobina metálica  Material Aluminio anodizado de alta resistencia  Características Diámetro superior: 4,5 cm Altura: 3,9 cm Base: 7,8 cm Diseño liviano y resistente Alta capacidad de carga de línea Excelente salida de hilo  Uso Ideal como repuesto o para cambiar tipos de línea rápidamente.  Aplicacio',
+'REEL ATLANTIC GL 7.800':'REEL FRONTAL DE PESCA Art: ATLANTIC GL-7800 Tipo: Reel frontal (spinning) Material Cuerpo metálico de alta resistencia con bobina de aluminio anodizado Características Sistema de freno delantero de precisión Bobina metálica reforzada Manivela intercambiable Recuperación suave y balanceada Guía hilo reforzado Diseño robusto y duradero Capacidad / Ta',
+'MUL-M-12CF- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,12 mm Resitencia 9,6 Kg Color: FULL COLOR',
+'MUL-M-14CF- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,14 mm Resitencia 10,7 Kg Color: FULL COLOR',
+'MUL-M-16CF- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,16 mm Resitencia 15,4 Kg Color: FULL COLOR',
+'MUL-M-18A- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,18 mm Resitencia 17,1 Kg Color: AMARILLO',
+'MUL-M-22A- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,22 mm Resitencia 22,9 Kg Color: AMARILLO',
+'MUL-M-25A- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,25 mm Resitencia 23,8 Kg Color: AMARILLO',
+'MUL-M-30A- 500':'Multifilamento trenzado de 4 fibras. Alto nivel de sensibilidad. Capacidad de arrastre es muy alta. Resistencia y flexibilidad sin memoria. Diametro 0,30 mm Resitencia 32,9 Kg Color: AMARILLO',
+'FP-911':'Tipo: Accesorios de pesca Marca: MAX EXTREME Modelo: TJ8  Material: Metal Medidas: 16 x 9 cm Peso: 86 g Cantidad: 1 unidad OEM: Aceptable  Características: Impermeable, portátil, plegable, duradero, ecológico, acabado brillante  Usos: Pesca, actividades al aire libre, uso con caña de pescar  Ambientes: Mar (bote y costa), lago, estanque, río, corri',
+'TRA-19-04':'COPO DE PESCA PLEGABLE ART: TRA-19-04 Material: Estructura metálica + red de nylon Peso: 540 g Medidas abiertas: Largo total: 109,5 cm Mango: 54,5 cm Aro: 55 × 39 cm Profundidad de red: 42,5 cm Medidas plegado: Largo: 68 cm Ancho: 22 cm Características Sistema plegable para fácil transporte Red resistente y flexible (no daña el pez) Mango antidesli',
+'TRA-19-05':'COPO DE PESCA PLEGABLE Art: TRA-19-05 Material: Estructura metálica + red de nylon Peso: 640 g Medidas abiertas: Largo total: 141,7 cm Mango: 74 cm Aro: 67,7 × 49,5 cm Profundidad de red: 52 cm Medidas plegado: Largo: 82 cm Ancho: 25,5 cm Características Sistema plegable para fácil transporte Red resistente y flexible Mango antideslizante Estructur',
+'KIT-A23':'KIT DE PESCA MULTIFUNCIÓN MAX EXTREME KIT-A23 Marca: Max Extreme Código: KIT-A23 Tipo: Kit de herramientas de pesca Componentes Pinza multifunción Cuchillo con funda Retractor con mosquetón Estuche plástico organizador Materiales Pinza: Acero inoxidable + mango antideslizante Cuchillo: Hoja de acero + funda plástica Estuche: Plástico rígido Caracte',
+'KIT-381-1':'KIT DE PESCA MULTIFUNCIÓN MAX EXTREME Marca: Max Extreme Tipo: Kit de herramientas de pesca Componentes Pinza multifunción Cuchillo con funda Tabla/soporte de trabajo Materiales Pinza: Acero inoxidable + mango antideslizante Cuchillo: Hoja de acero + mango ergonómico Base: Plástico rígido resistente Características Kit completo para pesca Pinza con',
+'FT-335':'MOSQUETÓN MAGNÉTICO TIPO S Tipo: Accesorio de sujeción magnético Material: Cuerpo ABS + acero inoxidable 201 Capacidad Carga máxima: 5 kg Características Sistema magnético de apertura rápida Cierre con traba de seguridad Mosquetón doble tipo “S” Material resistente y liviano Conexión automática por imán (6–7 cm) Se puede usar en conjunto o por sepa',
+'TQ-22':'PINZA MULTIFUNCIÓN DE PESCA CON ESTUCHE Art: TQ-22 Tipo: Pinza de pesca multifunción Material Acero inoxidable de alta resistencia, apto para uso en agua dulce y salada Características Punta dentada para mejor agarre Cortador de línea integrado Mecanismo de apertura suave Diseño liviano y resistente Sistema de bloqueo de seguridad Empuñadura ergonó',
+'FP-840M':'PINZA MULTIFUNCIÓN DE PESCA Art: FP-840-M Tipo: Pinza de pesca multifunción Material Acero inoxidable de alta resistencia, apto para uso en agua dulce y salada Características Punta dentada para agarre firme Cortador de línea integrado Sistema de apertura asistida Diseño liviano y resistente Mecanismo de bloqueo de seguridad Empuñadura ergonómica a',
+'TH-08':'CORDÓN DE SEGURIDAD ESPIRALADO PARA HERRAMIENTAS Art: TH-08 Tipo: Sujetador elástico para accesorios Material Cable de acero recubierto con espiral elástica de alta resistencia Características Diseño espiralado extensible Alta resistencia y durabilidad Mosquetones metálicos en ambos extremos Anillas reforzadas de sujeción Recubrimiento protector an',
+'MOCHCA-N':'MOCHILA DE PESCA Marca: MAX EXTREME Art: MOCHCA-N Colores disponibles: Verde / Negro Medidas: Largo: 40 cm Alto: 38 cm Ancho: 20 cm Material Tela resistente de alta durabilidad Características Múltiples compartimentos de almacenamiento Bolsillos frontales y laterales con cierre Diseño práctico y funcional Correa ajustable para transporte cómodo Ide',
+'MOCHCA-V':'',
+'GBU-227':'CARTUCHO DE GAS BUTANO MORGUL OUTDOOR Marca: Morgul Outdoor Art: GBU-227 Tipo: Cartucho de gas descartable Composición 95% Butano 5% Propano Contenido Peso neto: 227 g Características Gas licuado de alta eficiencia Encendido rápido y estable Compatible con anafes portátiles Formato descartable Fácil de transportar y almacenar Uso Ideal para cocinar',
+'SPT-10':'SOPLETE A GAS PORTÁTIL Art: SPT-10 Tipo: Soplete a gas para cartucho Material Metal resistente de bronce Características Encendido manual Regulador de llama Boquilla de alta temperatura Diseño compacto y liviano Fácil conexión a cartucho de gas Llama potente y estable Uso Ideal para encendido de fuego, cocina outdoor y trabajos de calor. Aplicacion',
+'SPT-20':'SOPLETE A GAS PORTÁTIL Art: SPT-20 Tipo: Soplete a gas para cartucho Material Metal resistente de acero y componentes reforzados Características Encendido automático (piezoeléctrico) Regulador de llama de precisión Boquilla de alta temperatura Diseño ergonómico y liviano Fácil conexión a cartucho de gas Llama potente, concentrada y estable Uso Idea',
+'SPT-30':'SOPLETE A GAS PORTÁTIL Art: SPT-30 Tipo: Soplete a gas para cartucho Material Metal resistente de acero y cuerpo reforzado Características Encendido automático (piezoeléctrico) Gira 360° sin alterar la llama Regulador de llama de precisión Boquilla de alta temperatura Diseño ergonómico tipo pistola Fácil conexión a cartucho de gas Llama potente, un',
+'PIL-10-N':'PILOTO DE LLUVIA TIPO PONCHO Art: PIL-10-N Color: Negro Tipo: Impermeable tipo poncho Material Tela impermeable resistente Características 100% impermeable Diseño amplio tipo poncho Capucha integrada Liviano y fácil de transportar Permite usar mochila debajo Secado rápido Uso Ideal para protección contra la lluvia en actividades al aire libre.',
+};
+var PRODS = [
+  {c:"AIS-M-1",n:"Aislante plegable impermeable 2cm aluminizado 183x60cm",cat:"Camping",p:16900,e:"🛏️",nv:false},
+  {c:"AIS-3-1",n:"Aislante goma EVA aluminizado 180x60x1cm",cat:"Camping",p:8900,e:"🛏️",nv:false},
+  {c:"AIS-M-3",n:"Colchoneta ultraliviana con almohada 530g - Verde",cat:"Camping",p:27033,e:"🛏️",nv:true},
+  {c:"AIS-M-4",n:"Colchoneta ultraliviana autoinflable con almohada",cat:"Camping",p:32846,e:"🛏️",nv:true},
+  {c:"BDX-1-1 R",n:"Urban bolsa dormir rectangular 180cm - Roja",cat:"Camping",p:16963,e:"🥾",nv:false},
+  {c:"BDX-1-1 A",n:"Urban bolsa dormir rectangular 180cm - Azul",cat:"Camping",p:16963,e:"🥾",nv:false},
+  {c:"BDX-1-1 V",n:"Urban bolsa dormir rectangular 180cm - Verde",cat:"Camping",p:16963,e:"🥾",nv:false},
+  {c:"BDX-4-1",n:"Magar bolsa tipo momia 190cm - Azul",cat:"Camping",p:24763,e:"🥾",nv:false},
+  {c:"BDD-M-1",n:"Kirati bolsa dormir rectangular 190x84cm - Roja",cat:"Camping",p:21979,e:"🥾",nv:false},
+  {c:"BDD-M-2",n:"Nepal bolsa rectangular 180cm - Negra",cat:"Camping",p:21979,e:"🥾",nv:false},
+  {c:"BDD-M-4",n:"Bolsa Yosemitie -5C ultralight 850g",cat:"Camping",p:41910,e:"🥾",nv:true},
+  {c:"COL-10-1",n:"Colchon inflable camping bomba USB 100x190cm",cat:"Camping",p:97155,e:"🛌",nv:true},
+  {c:"COL-10-2",n:"Colchon inflable camping bomba USB 150x200cm",cat:"Camping",p:124870,e:"🛌",nv:true},
+  {c:"CAR-M-1",n:"Carpa playera automatica domo UV - Roja",cat:"Camping",p:44516,e:"⛺",nv:false},
+  {c:"CAR-M-2",n:"Carpa playera abierta UV - Azul",cat:"Camping",p:25636,e:"⛺",nv:false},
+  {c:"CAR-M-3",n:"Carpa playera automatica con mosquitero UV",cat:"Camping",p:48028,e:"⛺",nv:true},
+  {c:"TABLE-10",n:"Mesa plegable camping 60x40x50cm",cat:"Camping",p:19741,e:"🪑",nv:true},
+  {c:"TABLE-20",n:"Mesa plegable camping 70x50x60cm",cat:"Camping",p:21716,e:"🪑",nv:true},
+  {c:"TABLE-30",n:"Mesa plegable camping 80x60x70cm",cat:"Camping",p:24677,e:"🪑",nv:true},
+  {c:"TABLE-40",n:"Juego mesa 120x60x70cm + 4 sillas aluminio",cat:"Camping",p:45309,e:"🪑",nv:false},
+  {c:"SCH-10",n:"Silla plegable aluminio desarmable 90kg",cat:"Camping",p:30478,e:"🪑",nv:true},
+  {c:"SID-1055L",n:"Sillon director reforzado plegable 120kg",cat:"Camping",p:47473,e:"🪑",nv:true},
+  {c:"GBU-227",n:"Cartucho gas butano/propano 227g descartable",cat:"Camping",p:1760,e:"🔥",nv:true},
+  {c:"SPT-10",n:"Soplete pico bronce 1300 grados c/clip gas",cat:"Camping",p:7000,e:"🔥",nv:false},
+  {c:"SPT-20",n:"Soplete encendido automatico 1300 grados",cat:"Camping",p:7100,e:"🔥",nv:false},
+  {c:"SPT-30",n:"Soplete automatico 360 grados 1300 grados",cat:"Camping",p:7200,e:"🔥",nv:false},
+  {c:"LM-01",n:"Anafe compacto camping gas butano c/maletin",cat:"Camping",p:18015,e:"🔥",nv:false},
+  {c:"MOC-8-01 NA",n:"Mochila senderismo 40L - Naranja",cat:"Outdoor",p:16451,e:"🎒",nv:true},
+  {c:"MOC-8-01 RO",n:"Mochila senderismo 40L - Roja",cat:"Outdoor",p:16451,e:"🎒",nv:true},
+  {c:"MOC-8-01 NE",n:"Mochila senderismo 40L - Negra",cat:"Outdoor",p:16451,e:"🎒",nv:true},
+  {c:"MOC-8-01 AZ",n:"Mochila senderismo 40L - Azul",cat:"Outdoor",p:16451,e:"🎒",nv:true},
+  {c:"SOM-4-3 A",n:"Sombrilla mastil aluminio UV 2.0m - Azul",cat:"Outdoor",p:40117,e:"⛱️",nv:false},
+  {c:"SOM-4-3 R",n:"Sombrilla mastil aluminio UV 2.0m - Roja",cat:"Outdoor",p:40117,e:"⛱️",nv:false},
+  {c:"SOM-4-3 V",n:"Sombrilla mastil aluminio UV 2.0m - Verde",cat:"Outdoor",p:40117,e:"⛱️",nv:false},
+  {c:"SOM-4-4 A",n:"Sombrilla mastil aluminio UV 2.2m - Azul",cat:"Outdoor",p:46895,e:"⛱️",nv:false},
+  {c:"SOM-4-4 R",n:"Sombrilla mastil aluminio UV 2.2m - Roja",cat:"Outdoor",p:46895,e:"⛱️",nv:false},
+  {c:"SOM-4-4 V",n:"Sombrilla mastil aluminio UV 2.2m - Verde",cat:"Outdoor",p:46895,e:"⛱️",nv:false},
+  {c:"SOM-4-1",n:"Sombrilla playera rompe viento UV 2.4m",cat:"Outdoor",p:44754,e:"⛱️",nv:false},
+  {c:"SOM-4-2",n:"Sombrilla playera 360 grados UV 2.0m",cat:"Outdoor",p:35690,e:"⛱️",nv:false},
+  {c:"BEX-2",n:"Bolso impermeable PVC 2L - Negro",cat:"Outdoor",p:5528,e:"💧",nv:false},
+  {c:"BEX-5",n:"Bolso impermeable PVC 5L - Negro",cat:"Outdoor",p:6605,e:"💧",nv:false},
+  {c:"BEX-10",n:"Bolso impermeable PVC 10L - Amarillo",cat:"Outdoor",p:7628,e:"💧",nv:false},
+  {c:"BEX-15",n:"Bolso impermeable PVC 15L - Naranja",cat:"Outdoor",p:11038,e:"💧",nv:false},
+  {c:"BEX-20",n:"Bolso impermeable PVC 20L - Naranja",cat:"Outdoor",p:11039,e:"💧",nv:false},
+  {c:"BEX-30",n:"Bolso impermeable PVC 30L - Gris",cat:"Outdoor",p:12826,e:"💧",nv:false},
+  {c:"PAL-10-1",n:"Pala plegable tactica 3en1 41.5cm c/funda",cat:"Outdoor",p:5528,e:"⛏️",nv:false},
+  {c:"PAL-10-2",n:"Pala plegable con pico 47cm c/funda",cat:"Outdoor",p:8933,e:"⛏️",nv:false},
+  {c:"PAL-10-3",n:"Pala plegable con pico 59cm c/funda",cat:"Outdoor",p:11493,e:"⛏️",nv:true},
+  {c:"BTX-2-1",n:"Baston trekking aluminio plegable 130cm",cat:"Outdoor",p:20383,e:"🚶",nv:false},
+  {c:"BTX-2-2",n:"Baston trekking aluminio Walk Stick 135cm",cat:"Outdoor",p:14616,e:"🚶",nv:false},
+  {c:"BTX-2-3",n:"Baston trekking aluminio telescopico 135cm",cat:"Outdoor",p:5756,e:"🚶",nv:false},
+  {c:"BTX-2-5",n:"Baston trekking aluminio 4 tramos 130cm",cat:"Outdoor",p:17375,e:"🚶",nv:false},
+  {c:"BTX-5-1",n:"Baston trekking aluminio ajuste rapido 135cm",cat:"Outdoor",p:13483,e:"🚶",nv:false},
+  {c:"BTX-5-2",n:"Baston trekking Suolide desmontable 135cm",cat:"Outdoor",p:17375,e:"🚶",nv:false},
+  {c:"PIL-01",n:"Poncho lluvia poliester nylon c/capucha Negro",cat:"Outdoor",p:8500,e:"🌧️",nv:true},
+  {c:"TABLE-ST-1",n:"Tabla inflable Paddle Board 280x78x15cm",cat:"Outdoor",p:392007,e:"🏄",nv:true},
+  {c:"LDC-1-2",n:"Linterna vincha USB 1 tira amarilla con sensor",cat:"Iluminación",p:4050,e:"🔦",nv:false},
+  {c:"LDC-2-2",n:"Linterna vincha USB 2 tiras amarillas con sensor",cat:"Iluminación",p:4923,e:"🔦",nv:false},
+  {c:"LDC-1-3",n:"Linterna vincha USB 3 tiras con sensor",cat:"Iluminación",p:5484,e:"🔦",nv:false},
+  {c:"LDC-1-4",n:"Linterna cabeza alta potencia pantalla digital",cat:"Iluminación",p:7920,e:"🔦",nv:false},
+  {c:"LDC-1-10",n:"Linterna cabeza alta potencia pantalla digital v2",cat:"Iluminación",p:7920,e:"🔦",nv:false},
+  {c:"LDC-1-7",n:"Portatil mini COB LED USB 200 lumenes",cat:"Iluminación",p:2605,e:"🔦",nv:false},
+  {c:"LDC-6-1",n:"Linterna LED alta potencia sensor COB tipo C",cat:"Iluminación",p:4456,e:"🔦",nv:false},
+  {c:"LDC-1-5",n:"Linterna cabeza USB con sensor",cat:"Iluminación",p:2742,e:"🔦",nv:false},
+  {c:"LDC-1-6",n:"Linterna cabeza LED XPE+COB 90 lumenes USB",cat:"Iluminación",p:4935,e:"🔦",nv:false},
+  {c:"LDC-1-9",n:"Linterna cabeza bateria intercambiable COB",cat:"Iluminación",p:5484,e:"🔦",nv:false},
+  {c:"LIN-4-1",n:"Linterna telescopica aluminio 1200 lumenes",cat:"Iluminación",p:14395,e:"💡",nv:false},
+  {c:"LIN-1-8",n:"Linterna tactica LED XHP50 16.5cm recargable",cat:"Iluminación",p:15080,e:"💡",nv:false},
+  {c:"LIN-1-9",n:"Linterna tactica LED XHP50 18.5cm recargable",cat:"Iluminación",p:13709,e:"💡",nv:false},
+  {c:"LIN-1-12",n:"Linterna largo alcance 100m tactica T6",cat:"Iluminación",p:7197,e:"💡",nv:false},
+  {c:"LIN-1-2",n:"Linterna mano antorcha aluminio zoom 9.5cm",cat:"Iluminación",p:2673,e:"💡",nv:false},
+  {c:"LIN-1-3",n:"Linterna mano antorcha aluminio zoom 14cm",cat:"Iluminación",p:7197,e:"💡",nv:false},
+  {c:"LIN-1-4",n:"Linterna mano antorcha aluminio zoom 11.5cm",cat:"Iluminación",p:5347,e:"💡",nv:false},
+  {c:"LIN-1-5",n:"Linterna mano antorcha aluminio zoom 14cm v2",cat:"Iluminación",p:5621,e:"💡",nv:false},
+  {c:"LIN-1-6",n:"Linterna mano antorcha aluminio zoom 16.5cm",cat:"Iluminación",p:5826,e:"💡",nv:false},
+  {c:"LDC-1-8",n:"Linterna trabajo COB llavero magnetica",cat:"Iluminación",p:7403,e:"💡",nv:false},
+  {c:"LIN-1-1",n:"Linterna llavero magnetica multifuncion 1000 lm",cat:"Iluminación",p:7540,e:"💡",nv:false},
+  {c:"LDC-7-1",n:"Linterna multifuncion aluminio con tripode",cat:"Iluminación",p:8226,e:"💡",nv:false},
+  {c:"LIN-2-4",n:"Llavero aluminio luz recargable COB",cat:"Iluminación",p:2368,e:"💡",nv:false},
+  {c:"LIN-2-5",n:"Llavero plastico luz recargable COB",cat:"Iluminación",p:1683,e:"💡",nv:false},
+  {c:"LIN-1-13",n:"Farol camping con guirnalda luces solar USB-C",cat:"Iluminación",p:15318,e:"🏮",nv:false},
+  {c:"LIN-1-7",n:"Linterna emergencia iman 1200 lumenes powerbank",cat:"Iluminación",p:18117,e:"🏮",nv:false},
+  {c:"LIN-6-1",n:"Farol linterna recargable multifuncion USB-C",cat:"Iluminación",p:17901,e:"🏮",nv:false},
+  {c:"PIN-3-1",n:"Cortapluma acero multifuncion 29 usos c/estuche",cat:"Herramientas",p:34511,e:"🔧",nv:false},
+  {c:"PIN-3-2",n:"Cortapluma acero multifuncion 18 usos c/estuche",cat:"Herramientas",p:23068,e:"🔧",nv:false},
+  {c:"PIN-3-3",n:"Cortapluma acero multifuncion 17 usos c/estuche",cat:"Herramientas",p:27634,e:"🔧",nv:false},
+  {c:"PIN-3-4",n:"Cortapluma acero multifuncion 15 usos c/estuche",cat:"Herramientas",p:16984,e:"🔧",nv:false},
+  {c:"PIN-3-5",n:"Cortapluma acero multifuncion 15 usos v2",cat:"Herramientas",p:16451,e:"🔧",nv:false},
+  {c:"PIN-3-6",n:"Cortapluma acero multifuncion 15 usos + accesorios",cat:"Herramientas",p:14806,e:"🔧",nv:false},
+  {c:"NAV-3-1",n:"Cuchillo hoja acero 19cm plegable c/funda",cat:"Herramientas",p:11310,e:"🗡️",nv:false},
+  {c:"CYT-3-1",n:"Set cubiertos plegables 8 funciones",cat:"Herramientas",p:4944,e:"🍴",nv:false},
+  {c:"SH-102",n:"Afilador cuchillos de ceramica",cat:"Herramientas",p:2255,e:"🔪",nv:true},
+  {c:"REE-17-01",n:"Reel Viper GTA2000 14+1BB metalico",cat:"Pesca",p:36480,e:"🎣",nv:false},
+  {c:"REE-17-02",n:"Reel Viper GTA3000 14+1BB metalico",cat:"Pesca",p:37566,e:"🎣",nv:false},
+  {c:"REE-17-03",n:"Reel Viper GTA4000 14+1BB metalico",cat:"Pesca",p:38652,e:"🎣",nv:false},
+  {c:"REE-17-04",n:"Reel Viper GTA5000 14+1BB metalico",cat:"Pesca",p:39738,e:"🎣",nv:false},
+  {c:"REE-17-05",n:"Reel Viper GTA6000 14+1BB metalico",cat:"Pesca",p:40818,e:"🎣",nv:false},
+  {c:"REE-17-06",n:"Reel Viper GTA7000 14+1BB metalico",cat:"Pesca",p:41803,e:"🎣",nv:false},
+  {c:"REEL-LM3000",n:"Reel Drivon LM3000 4+1BB c/carrete extra",cat:"Pesca",p:28325,e:"🎣",nv:true},
+  {c:"REEL-LM4000",n:"Reel Drivon LM4000 4+1BB c/carrete extra",cat:"Pesca",p:29991,e:"🎣",nv:true},
+  {c:"REEL-LM5000",n:"Reel Drivon LM5000 4+1BB c/carrete extra",cat:"Pesca",p:31657,e:"🎣",nv:true},
+  {c:"REEL-LM6000",n:"Reel Drivon LM6000 4+1BB c/carrete extra",cat:"Pesca",p:33323,e:"🎣",nv:true},
+  {c:"REE-17-11",n:"Reel Silver DR3000 12+1BB",cat:"Pesca",p:21919,e:"🎣",nv:false},
+  {c:"REE-17-12",n:"Reel Silver DR4000 12+1BB",cat:"Pesca",p:23447,e:"🎣",nv:false},
+  {c:"REE-17-13",n:"Reel Silver DR5000 12+1BB",cat:"Pesca",p:24978,e:"🎣",nv:false},
+  {c:"REE-17-14",n:"Reel Silver DR7000 12+1BB",cat:"Pesca",p:31154,e:"🎣",nv:false},
+  {c:"REEL-HQ3000",n:"Reel Vorta HQ3000 4+1BB c/carrete extra",cat:"Pesca",p:17162,e:"🎣",nv:false},
+  {c:"REEL-HQ4000",n:"Reel Vorta HQ4000 4+1BB c/carrete extra",cat:"Pesca",p:18306,e:"🎣",nv:false},
+  {c:"REEL-HQ5000",n:"Reel Vorta HQ5000 4+1BB c/carrete extra",cat:"Pesca",p:19450,e:"🎣",nv:false},
+  {c:"REEL-HQ6000",n:"Reel Vorta HQ6000 4+1BB c/carrete extra",cat:"Pesca",p:20594,e:"🎣",nv:false},
+  {c:"REEL-HQ7000",n:"Reel Vorta HQ7000 4+1BB c/carrete extra",cat:"Pesca",p:21738,e:"🎣",nv:false},
+  {c:"REEL-NSX3000",n:"Reel Black Rain NSX3000 3+1BB",cat:"Pesca",p:19121,e:"🎣",nv:true},
+  {c:"REEL-NSX4000",n:"Reel Black Rain NSX4000 3+1BB",cat:"Pesca",p:19645,e:"🎣",nv:true},
+  {c:"REEL-NSX5000",n:"Reel Black Rain NSX5000 3+1BB",cat:"Pesca",p:20168,e:"🎣",nv:true},
+  {c:"REEL-NSX6000",n:"Reel Black Rain NSX6000 3+1BB",cat:"Pesca",p:20692,e:"🎣",nv:true},
+  {c:"REEL-NSX7000",n:"Reel Black Rain NSX7000 3+1BB",cat:"Pesca",p:21216,e:"🎣",nv:true},
+  {c:"REEL-HE3000",n:"Reel Harden HE3000 3+1BB c/carrete extra",cat:"Pesca",p:15636,e:"🎣",nv:false},
+  {c:"REEL-HE4000",n:"Reel Harden HE4000 3+1BB c/carrete extra",cat:"Pesca",p:16399,e:"🎣",nv:false},
+  {c:"REEL-HE5000",n:"Reel Harden HE5000 3+1BB c/carrete extra",cat:"Pesca",p:17162,e:"🎣",nv:false},
+  {c:"REEL-HE6000",n:"Reel Harden HE6000 3+1BB c/carrete extra",cat:"Pesca",p:17924,e:"🎣",nv:false},
+  {c:"REEL-HE7000",n:"Reel Harden HE7000 3+1BB c/carrete extra",cat:"Pesca",p:18687,e:"🎣",nv:false},
+  {c:"REE-17-15",n:"Reel frontal inicial AKR200 - Rojo",cat:"Pesca",p:3529,e:"🎣",nv:false},
+  {c:"REE-17-16",n:"Reel frontal inicial AKR200 - Azul",cat:"Pesca",p:3529,e:"🎣",nv:false},
+  {c:"REE-17-17",n:"Reel Baitcasting DW128L ultra ligero izquierdo",cat:"Pesca",p:19148,e:"🎣",nv:false},
+  {c:"REE-17-18",n:"Reel Baitcasting DW128R ultra ligero derecho",cat:"Pesca",p:19148,e:"🎣",nv:false},
+  {c:"LDC-300R",n:"Reel Zion LDC300R derecho aluminio forjado",cat:"Pesca",p:73660,e:"🎣",nv:true},
+  {c:"LDC-300L",n:"Reel Zion LDC300L izquierdo aluminio forjado",cat:"Pesca",p:73660,e:"🎣",nv:true},
+  {c:"REE-17-19",n:"Reel Shark-X DW139L freno magnetico izq.",cat:"Pesca",p:35027,e:"🎣",nv:false},
+  {c:"REE-17-20",n:"Reel Shark-X DW139R freno magnetico der.",cat:"Pesca",p:35027,e:"🎣",nv:false},
+  {c:"AK-200R",n:"Reel Mavix AK200R freno magnetico derecho",cat:"Pesca",p:22547,e:"🎣",nv:true},
+  {c:"AK-200L",n:"Reel Mavix AK200L freno magnetico izquierdo",cat:"Pesca",p:22547,e:"🎣",nv:true},
+  {c:"NKG 12.000",n:"Reel Surf Master NKG 12000 6+1BB agua salada",cat:"Pesca",p:60500,e:"🎣",nv:true},
+  {c:"GL 7.800",n:"Reel Atlantic GL-7800 cuerpo metalico agua salada",cat:"Pesca",p:49900,e:"🎣",nv:true},
+  {c:"REE-17-09",n:"Reel aluminio LM2500 6+1BB acero inoxidable",cat:"Pesca",p:39202,e:"🎣",nv:false},
+  {c:"FK-901B",n:"Caja señuelos c/divisiones y accesorios completo",cat:"Pesca",p:33979,e:"📦",nv:false},
+  {c:"FP-833",n:"Alicate pesca con herramientas",cat:"Pesca",p:4523,e:"🐟",nv:true},
+  {c:"FT-336",n:"Pinza alicate abreanillas corta leader 125mm",cat:"Pesca",p:4407,e:"🐟",nv:true},
+  {c:"HPE-13-01",n:"Pinza abre anillas señuelos pesca c/funda 16cm",cat:"Pesca",p:11964,e:"🐟",nv:false},
+  {c:"HPE-13-02",n:"Tijera pesca corta dentada multi tanza",cat:"Pesca",p:3150,e:"🐟",nv:false},
+  {c:"AP-114",n:"Pinza aluminio anodizado multifuncion c/funda",cat:"Pesca",p:24586,e:"🐟",nv:false},
+  {c:"FP-928",n:"Tijera pesca mango ergonomico acero inox",cat:"Pesca",p:5166,e:"🐟",nv:false},
+  {c:"HDP-19-01",n:"Juego boga grip 22cm + pinza acero 18cm",cat:"Pesca",p:18117,e:"🐟",nv:false},
+  {c:"HEP-14-01",n:"Pinza boga grip 22cm inoxidable gatillo",cat:"Pesca",p:3388,e:"🐟",nv:false},
+  {c:"HEP14-04",n:"Pinza boga grip 22cm inox gatillo doble agarre",cat:"Pesca",p:3193,e:"🐟",nv:false},
+  {c:"HEP14-06",n:"Bogagrip c/balanza y centimetro 28cm",cat:"Pesca",p:8549,e:"🐟",nv:false},
+  {c:"HEP14-08",n:"Bogagrip c/balanza 28cm",cat:"Pesca",p:8137,e:"🐟",nv:false},
+  {c:"FT-335",n:"Mosquetones magneticos multiuso 5kg x2",cat:"Pesca",p:10376,e:"🐟",nv:true},
+  {c:"TQ-22",n:"Pinza pesca aluminio alta resistencia c/soporte cintura",cat:"Pesca",p:31437,e:"🐟",nv:true},
+  {c:"FP-840M",n:"Pinza pesca alta resistencia mango ergonomico",cat:"Pesca",p:25697,e:"🐟",nv:true},
+  {c:"TH-08",n:"Cuerda elastica herramientas c/mosqueton x2",cat:"Pesca",p:4200,e:"🐟",nv:true},
+  {c:"KIT-A23",n:"Kit pesca: pinza + cuchillo + retractor + estuche",cat:"Pesca",p:14570,e:"🐟",nv:true},
+  {c:"KIT-381-1",n:"Tabla filetar c/accesorios y afilador",cat:"Pesca",p:31348,e:"🐟",nv:true},
+  {c:"F-888S",n:"Cuchillo fileteador mango ergonomico",cat:"Pesca",p:7874,e:"🔪",nv:true},
+  {c:"HEP-14-02",n:"Cuchillo fileteador acero inox 25cm c/funda",cat:"Pesca",p:6560,e:"🔪",nv:false},
+  {c:"F-104",n:"Cuchillo flotante filetar c/funda rigida 13cm",cat:"Pesca",p:5889,e:"🔪",nv:true},
+  {c:"C-3600-B",n:"Caja estanca 3600 señuelos 26x17x4.5cm",cat:"Pesca",p:7107,e:"📦",nv:true},
+  {c:"C-3700-B",n:"Caja estanca 3700 baja señuelos 35x21x5cm",cat:"Pesca",p:8755,e:"📦",nv:true},
+  {c:"C-3700-A",n:"Caja estanca 3700 alta señuelos 35x21x8cm",cat:"Pesca",p:9785,e:"📦",nv:true},
+  {c:"CDP-19-03-A",n:"Caja pesca grande 3en1 caja+balde+asiento Azul",cat:"Pesca",p:24365,e:"📦",nv:true},
+  {c:"CDP-19-03-V",n:"Caja pesca grande 3en1 caja+balde+asiento Verde",cat:"Pesca",p:24365,e:"📦",nv:true},
+  {c:"ALF-19-01",n:"Caja 46 alfajores goma EVA para lineas",cat:"Pesca",p:29447,e:"📦",nv:false},
+  {c:"ALF-19-02",n:"Caja 24 alfajores goma EVA para lineas",cat:"Pesca",p:18581,e:"📦",nv:false},
+  {c:"MOCHCA-N",n:"Mochila cordura para caja pesca 3en1 Negra",cat:"Pesca",p:19500,e:"🎒",nv:true},
+  {c:"MOCHCA-V",n:"Mochila cordura para caja pesca 3en1 Verde",cat:"Pesca",p:19500,e:"🎒",nv:true},
+  {c:"TRA-11-01",n:"Trampa mojarras plegable 4 bocas Verde",cat:"Pesca",p:3790,e:"🕸️",nv:false},
+  {c:"TRA-11-02",n:"Trampa mojarras plegable 6 bocas Verde",cat:"Pesca",p:4456,e:"🕸️",nv:false},
+  {c:"TRA-11-03",n:"Trampa mojarras plegable 8 bocas Verde",cat:"Pesca",p:5129,e:"🕸️",nv:false},
+  {c:"TRA-13-01",n:"Copo pesca plegable aluminio 2.05m x 50cm",cat:"Pesca",p:20281,e:"🕸️",nv:false},
+  {c:"TRA-19-01",n:"Copo pesca plegable aluminio 2.72m x 50cm",cat:"Pesca",p:14616,e:"🕸️",nv:false},
+  {c:"TRA-19-02",n:"Copo pesca plegable aluminio 2.10m x 60cm",cat:"Pesca",p:23000,e:"🕸️",nv:false},
+  {c:"TRA-19-03",n:"Copo pesca extensible aluminio 2.10m x 60cm",cat:"Pesca",p:11897,e:"🕸️",nv:false},
+  {c:"TRA-19-04",n:"Copo pesca malla poliester 110cm mango aluminio",cat:"Pesca",p:33335,e:"🕸️",nv:true},
+  {c:"TRA-19-05",n:"Copo engomado malla poliester 141cm aluminio",cat:"Pesca",p:35984,e:"🕸️",nv:true},
+  {c:"RNA-100",n:"Ranita señuelo anti-enganche 3cm",cat:"Pesca",p:1236,e:"🐸",nv:false},
+  {c:"MUL-M-12A",n:"Multifilamento 0.12mm amarillo caja x10/100m",cat:"Pesca",p:25190,e:"🧵",nv:false},
+  {c:"MUL-M-16A",n:"Multifilamento 0.16mm amarillo caja x10/100m",cat:"Pesca",p:25190,e:"🧵",nv:false},
+  {c:"MUL-M-22A",n:"Multifilamento 0.22mm amarillo caja x10/100m",cat:"Pesca",p:25190,e:"🧵",nv:false},
+  {c:"MUL-M-30A",n:"Multifilamento 0.30mm amarillo caja x10/100m",cat:"Pesca",p:25190,e:"🧵",nv:false},
+  {c:"MUL-M-12CF-500",n:"Multifilamento 0.12mm full color bobina 500m",cat:"Pesca",p:9114,e:"🧵",nv:true},
+  {c:"MUL-M-18A-500",n:"Multifilamento 0.18mm amarillo bobina 500m",cat:"Pesca",p:9114,e:"🧵",nv:true},
+  {c:"MUL-M-25A-500",n:"Multifilamento 0.25mm amarillo bobina 500m",cat:"Pesca",p:9114,e:"🧵",nv:true},
+  {c:"MUL-M-30A-500",n:"Multifilamento 0.30mm amarillo bobina 500m",cat:"Pesca",p:9114,e:"🧵",nv:true},
+  {c:"BAL-01",n:"Balanza digital multiusos hasta 50kg",cat:"Pesca",p:3354,e:"⚖️",nv:false},
+  {c:"ATR-H-24",n:"Atarraya de hilo 2.4m",cat:"Pesca",p:28737,e:"🕸️",nv:false},
+  {c:"ATR-H-27",n:"Atarraya de hilo 2.7m",cat:"Pesca",p:30797,e:"🕸️",nv:false},
+  {c:"ATR-N-24",n:"Atarraya de nylon 2.4m",cat:"Pesca",p:26059,e:"🕸️",nv:false},
+  {c:"ATR-N-27",n:"Atarraya de nylon 2.7m",cat:"Pesca",p:27398,e:"🕸️",nv:false}
+];
+
+var cart = {};
+var filt = 'todos';
+var MIN = 700000;
+
+function fmt(n){ return '$' + Math.round(n).toLocaleString('es-AR'); }
+function $(id){ return document.getElementById(id); }
+
+function render(){
+  var q = $('srch').value.toLowerCase();
+  var list = PRODS.filter(function(p){
+    var mf = filt === 'todos' || p.cat === filt;
+    var mq = !q || p.n.toLowerCase().indexOf(q) >= 0 || p.c.toLowerCase().indexOf(q) >= 0;
+    return mf && mq;
+  });
+  $('infoBar').textContent = list.length + ' producto' + (list.length !== 1 ? 's' : '');
+  if(!list.length){
+    $('grid').innerHTML = '<div class="no-r">Sin resultados para "' + q + '"</div>';
+    return;
+  }
+  var html = '';
+  for(var i = 0; i < list.length; i++){
+    var p = list[i];
+    var id = 'q_' + p.c.replace(/[^a-zA-Z0-9]/g,'_');
+    var added = !!cart[p.c];
+    html += '<div class="card">';
+    html += '<div class="card-img" onclick="openModal(\'' + p.c + '\')" style="cursor:pointer">';
+    html += '<span class="cat-tag">' + p.cat + '</span>';
+    if(p.nv) html += '<span class="new-tag">NUEVO</span>';
+    html += '<span>' + p.e + '</span>';
+    html += '</div>';
+    html += '<div class="card-body">';
+    html += '<div class="p-code">' + p.c + '</div>';
+    html += '<div class="p-name" onclick="openModal(\'' + p.c + '\')" style="cursor:pointer">' + p.n + '</div>';
+    html += '<div class="p-price">' + fmt(p.p) + ' <small>sin IVA</small></div>';
+    html += '<div class="qty-row">';
+    html += '<button class="qb" onclick="chg(\'' + p.c + '\',-1)">-</button>';
+    html += '<input class="qi" type="number" min="1" value="' + (cart[p.c] ? cart[p.c].qty : 1) + '" id="' + id + '">';
+    html += '<button class="qb" onclick="chg(\'' + p.c + '\',1)">+</button>';
+    html += '<button class="ab' + (added ? ' on' : '') + '" onclick="add(\'' + p.c + '\')">' + (added ? 'OK' : '+') + '</button>';
+    html += '</div></div></div>';
+  }
+  $('grid').innerHTML = html;
+}
+
+function chg(code, d){
+  var id = 'q_' + code.replace(/[^a-zA-Z0-9]/g,'_');
+  var el = document.getElementById(id);
+  if(!el) return;
+  var v = Math.max(1, (parseInt(el.value) || 1) + d);
+  el.value = v;
+  if(cart[code]){ cart[code].qty = v; renderCart(); }
+}
+
+function add(code){
+  var id = 'q_' + code.replace(/[^a-zA-Z0-9]/g,'_');
+  var el = document.getElementById(id);
+  var qty = parseInt(el ? el.value : 1) || 1;
+  var prod = null;
+  for(var i = 0; i < PRODS.length; i++){ if(PRODS[i].c === code){ prod = PRODS[i]; break; } }
+  if(!prod) return;
+  if(cart[code]){ cart[code].qty += qty; } else { cart[code] = {c:prod.c,n:prod.n,p:prod.p,e:prod.e,qty:qty}; }
+  
+var modalCode = '';
+function openModal(code){
+  var prod = null;
+  for(var i=0;i<PRODS.length;i++){if(PRODS[i].c===code){prod=PRODS[i];break;}}
+  if(!prod) return;
+  modalCode = code;
+  document.getElementById('modalTitle').textContent = prod.n;
+  document.getElementById('modalCode').textContent = 'Cod: ' + prod.c;
+  document.getElementById('modalDesc').textContent = DESCS[prod.c] || 'Ver catalogo para mas detalle.';
+  document.getElementById('modalPrice').textContent = fmt(prod.p) + ' sin IVA';
+  document.getElementById('modalAddBtn').onclick = function(){ add(code); closeModal(); };
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOv')) document.getElementById('modalOv').classList.remove('open');
+}
+
+render();
+  renderCart();
+  updateBadge();
+}
+
+function renderCart(){
+  var its = Object.values(cart);
+  if(!its.length){
+    $('items').innerHTML = '<div class="empty">🛒<br><br>No agregaste productos</div>';
+    $('totalAmt').textContent = '$0';
+    updateMin(0);
+    return;
+  }
+  var tot = 0;
+  var html = '';
+  for(var i = 0; i < its.length; i++){
+    var it = its[i];
+    var sub = it.p * it.qty;
+    tot += sub;
+    html += '<div class="ci">';
+    html += '<div class="ci-icon">' + it.e + '</div>';
+    html += '<div class="ci-info">';
+    html += '<div class="ci-code">' + it.c + '</div>';
+    html += '<div class="ci-name">' + it.n + '</div>';
+    html += '<div class="ci-row"><span class="ci-qty">' + it.qty + ' x ' + fmt(it.p) + '</span><span class="ci-sub">' + fmt(sub) + '</span></div>';
+    html += '</div>';
+    html += '<button class="ci-del" onclick="del(\'' + it.c + '\')">x</button>';
+    html += '</div>';
+  }
+  $('items').innerHTML = html;
+  $('totalAmt').textContent = fmt(tot);
+  updateMin(tot);
+}
+
+function updateMin(tot){
+  var bar = $('minBar'), fill = $('progFill'), wrap = $('progWrap');
+  var its = Object.values(cart);
+  if(!its.length){ bar.className='min-bar'; wrap.className='prog-wrap'; return; }
+  bar.className = 'min-bar show ' + (tot >= MIN ? 'good' : 'bad');
+  wrap.className = 'prog-wrap show';
+  var pct = Math.min(100, Math.round(tot/MIN*100));
+  fill.style.width = pct + '%';
+  fill.style.background = tot >= MIN ? '#22c55e' : (pct > 60 ? '#e8a020' : '#ef4444');
+  $('minIcon').textContent = tot >= MIN ? '✅' : '⚠️';
+  $('minMsg').textContent = tot >= MIN ? 'Superas la compra minima!' : 'No llegas a la compra minima... segui comprando';
+  $('minSub').textContent = tot >= MIN ? 'Podes enviar el pedido' : 'Te faltan ' + fmt(MIN - tot) + ' para el minimo de $700.000';
+}
+
+function del(code){ delete cart[code]; 
+var modalCode = '';
+function openModal(code){
+  var prod = null;
+  for(var i=0;i<PRODS.length;i++){if(PRODS[i].c===code){prod=PRODS[i];break;}}
+  if(!prod) return;
+  modalCode = code;
+  document.getElementById('modalTitle').textContent = prod.n;
+  document.getElementById('modalCode').textContent = 'Cod: ' + prod.c;
+  document.getElementById('modalDesc').textContent = DESCS[prod.c] || 'Ver catalogo para mas detalle.';
+  document.getElementById('modalPrice').textContent = fmt(prod.p) + ' sin IVA';
+  document.getElementById('modalAddBtn').onclick = function(){ add(code); closeModal(); };
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOv')) document.getElementById('modalOv').classList.remove('open');
+}
+
+render(); renderCart(); updateBadge(); }
+function clearCart(){ if(!confirm('Limpiar pedido?')) return; cart={}; 
+var modalCode = '';
+function openModal(code){
+  var prod = null;
+  for(var i=0;i<PRODS.length;i++){if(PRODS[i].c===code){prod=PRODS[i];break;}}
+  if(!prod) return;
+  modalCode = code;
+  document.getElementById('modalTitle').textContent = prod.n;
+  document.getElementById('modalCode').textContent = 'Cod: ' + prod.c;
+  document.getElementById('modalDesc').textContent = DESCS[prod.c] || 'Ver catalogo para mas detalle.';
+  document.getElementById('modalPrice').textContent = fmt(prod.p) + ' sin IVA';
+  document.getElementById('modalAddBtn').onclick = function(){ add(code); closeModal(); };
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOv')) document.getElementById('modalOv').classList.remove('open');
+}
+
+render(); renderCart(); updateBadge(); }
+function updateBadge(){ $('badge').textContent = Object.values(cart).reduce(function(s,i){return s+i.qty;},0); }
+function setF(f,btn){ filt=f; document.querySelectorAll('.fb').forEach(function(b){b.className='fb';}); btn.className='fb on'; 
+var modalCode = '';
+function openModal(code){
+  var prod = null;
+  for(var i=0;i<PRODS.length;i++){if(PRODS[i].c===code){prod=PRODS[i];break;}}
+  if(!prod) return;
+  modalCode = code;
+  document.getElementById('modalTitle').textContent = prod.n;
+  document.getElementById('modalCode').textContent = 'Cod: ' + prod.c;
+  document.getElementById('modalDesc').textContent = DESCS[prod.c] || 'Ver catalogo para mas detalle.';
+  document.getElementById('modalPrice').textContent = fmt(prod.p) + ' sin IVA';
+  document.getElementById('modalAddBtn').onclick = function(){ add(code); closeModal(); };
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOv')) document.getElementById('modalOv').classList.remove('open');
+}
+
+render(); }
+function togglePanel(){ $('panel').classList.toggle('open'); $('ov').classList.toggle('open'); }
+
+function sendWA(){
+  var its = Object.values(cart);
+  if(!its.length){ alert('Agrega productos primero.'); return; }
+  var tot = its.reduce(function(s,i){return s+i.p*i.qty;},0);
+  if(tot < MIN){ alert('No llegas a la compra minima de $700.000 sin IVA.\n\nTenes: ' + fmt(tot) + '\nTe faltan: ' + fmt(MIN-tot)); return; }
+  var nombre = $('fNombre').value.trim();
+  if(!nombre){ alert('Ingresa el nombre del cliente.'); $('fNombre').focus(); return; }
+  var lines = ['PEDIDO MORGUL OUTDOOR\n'];
+  lines.push('Cliente: ' + nombre);
+  if($('fCuit').value) lines.push('CUIT/DNI: ' + $('fCuit').value);
+  if($('fTel').value) lines.push('Tel: ' + $('fTel').value);
+  if($('fDir').value) lines.push('Direccion: ' + $('fDir').value);
+  if($('fPago').value) lines.push('Pago: ' + $('fPago').value);
+  lines.push('\nPRODUCTOS:');
+  its.forEach(function(it){
+    lines.push('- ' + it.c + ' | ' + it.n + '\n  ' + it.qty + ' u x ' + fmt(it.p) + ' = ' + fmt(it.p*it.qty));
+  });
+  lines.push('\nTOTAL (sin IVA): ' + fmt(tot));
+  if($('fObs').value) lines.push('\nObs: ' + $('fObs').value);
+  window.open('https://wa.me/5491130234049?text=' + encodeURIComponent(lines.join('\n')), '_blank');
+}
+
+
+var modalCode = '';
+function openModal(code){
+  var prod = null;
+  for(var i=0;i<PRODS.length;i++){if(PRODS[i].c===code){prod=PRODS[i];break;}}
+  if(!prod) return;
+  modalCode = code;
+  document.getElementById('modalTitle').textContent = prod.n;
+  document.getElementById('modalCode').textContent = 'Cod: ' + prod.c;
+  document.getElementById('modalDesc').textContent = DESCS[prod.c] || 'Ver catalogo para mas detalle.';
+  document.getElementById('modalPrice').textContent = fmt(prod.p) + ' sin IVA';
+  document.getElementById('modalAddBtn').onclick = function(){ add(code); closeModal(); };
+  document.getElementById('modalOv').classList.add('open');
+}
+function closeModal(e){
+  if(!e || e.target===document.getElementById('modalOv')) document.getElementById('modalOv').classList.remove('open');
+}
+
+render();
+</script>
+
+<div class="modal-ov" id="modalOv" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-top">
+      <div class="modal-title" id="modalTitle"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-code" id="modalCode"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <div class="modal-price" id="modalPrice"></div>
+    <button class="modal-add" id="modalAddBtn">+ Agregar al pedido</button>
+  </div>
+</div>
+</body>
+</html>
