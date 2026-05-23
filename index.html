@@ -812,27 +812,70 @@ function showTransferModal(nombre, empresa, tel, ciudad, provincia, notas, total
   document.getElementById('tr-nombre').textContent = nombre;
   
   // Build WA message
-  let msg = `🛍️ *PEDIDO MAYORISTA — MORGUL OUTDOOR*\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
-  msg += `👤 *DATOS DEL COMPRADOR*\n`;
-  msg += `Nombre: ${nombre}\n`;
-  if(empresa) msg += `Empresa: ${empresa}\n`;
-  msg += `Teléfono: ${tel}\n`;
-  msg += `Ciudad: ${ciudad} · ${provincia}\n\n`;
-  msg += `🛒 *PRODUCTOS*\n`;
-  cart.forEach(item=>{
-    msg += `▪️ *${item.id}* — ${item.name}\n`;
-    msg += `   Cant: ${item.qty} · ${fmt(item.price*item.qty)}\n`;
+  // Group cart by category
+  const catNames = {
+    'aislantes':'🛏️ AISLANTES Y COLCHONETAS',
+    'bolsas-dormir':'🛌 BOLSAS DE DORMIR',
+    'carpas':'⛺ CARPAS',
+    'colchones':'🛏️ COLCHONES INFLABLES',
+    'mochilas':'🎒 MOCHILAS',
+    'sombrillas':'☂️ SOMBRILLAS UV',
+    'mesas-sillas':'🪑 MESAS Y SILLAS',
+    'bolsas-impermeables':'💧 BOLSAS IMPERMEABLES',
+    'bastones':'🥾 BASTONES TREKKING',
+    'camping-cocina':'🔥 COCINA Y GAS',
+    'palas':'⛏️ PALAS',
+    'reels':'🎣 REELS Y CARRETES',
+    'herramientas-pesca':'🔧 HERRAMIENTAS DE PESCA',
+    'cuchillos':'🔪 CUCHILLOS',
+    'multifilamento':'🧵 MULTIFILAMENTO',
+    'trampas-copos':'🕸️ TRAMPAS Y COPOS',
+    'linternas':'🔦 LINTERNAS Y FAROLES',
+    'cortaplumas':'🪛 CORTAPLUMAS',
+  };
+  
+  // Group by category
+  const bycat = {};
+  cart.forEach(item => {
+    const cat = item.cat || 'otros';
+    if(!bycat[cat]) bycat[cat] = [];
+    bycat[cat].push(item);
   });
-  msg += `\n━━━━━━━━━━━━━━━━━━━━━\n`;
-  msg += `💰 *TOTAL A TRANSFERIR: ${fmt(total)}* (sin IVA)\n`;
-  msg += `🏦 CBU: 0170304520000031514383\n`;
-  msg += `📲 Alias: morgul.out.door\n`;
-  msg += `🏢 Titular: MORGUL SRL\n`;
-  msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  let msg = `🛍️ *PEDIDO MAYORISTA — MORGUL OUTDOOR*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+  msg += `👤 *DATOS DEL COMPRADOR*\n`;
+  msg += `▸ Nombre: ${nombre}\n`;
+  if(empresa) msg += `▸ Empresa: ${empresa}\n`;
+  msg += `▸ Teléfono: ${tel}\n`;
+  msg += `▸ Ciudad: ${ciudad} · ${provincia}\n`;
+  msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🛒 *PRODUCTOS POR CATEGORÍA*\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  
+  let subtotal = 0;
+  Object.keys(bycat).forEach(cat => {
+    const catLabel = catNames[cat] || cat.toUpperCase();
+    msg += `\n${catLabel}\n`;
+    bycat[cat].forEach(item => {
+      const itemTotal = item.price * item.qty;
+      subtotal += itemTotal;
+      msg += `  • ${item.name}\n`;
+      msg += `    Cód: ${item.id} | Cant: ${item.qty} | ${fmt(itemTotal)}\n`;
+    });
+  });
+  
+  msg += `\n━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `💰 *TOTAL A TRANSFERIR: ${fmt(total)}* _(sin IVA)_\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+  msg += `🏦 *DATOS BANCARIOS*\n`;
+  msg += `▸ CBU: 0170304520000031514383\n`;
+  msg += `▸ Alias: morgul.out.door\n`;
+  msg += `▸ Titular: MORGUL SRL\n`;
+  msg += `━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   msg += `📋 Lista N°4 Mayorista · Abril 2026\n`;
-  if(notas) msg += `\n📝 Notas: ${notas}\n`;
-  msg += `\n✅ Realizá la transferencia y enviá el comprobante por este medio. ¡Gracias!`;
+  if(notas) msg += `\n📝 *Notas:* ${notas}\n`;
+  msg += `\n✅ Realizá la transferencia y enviá el comprobante. ¡Gracias!`;
   
   document.getElementById('tr-wa-btn').onclick = function(){
     window.open(`https://wa.me/5491131602630?text=${encodeURIComponent(msg)}`,'_blank');
